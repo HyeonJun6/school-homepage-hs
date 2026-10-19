@@ -339,8 +339,17 @@
       <div id="admin-tab-submissions" class="hidden space-y-6">
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-4 justify-between items-center">
           <div class="flex items-center space-x-3">
-            <span class="text-sm font-semibold text-slate-700">과제 필터:</span>
+            <span class="text-sm font-semibold text-slate-700"><i class="fa-solid fa-filter text-indigo-500 mr-1"></i>과제 필터:</span>
             <select id="submission-filter-assignment" class="border border-slate-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800">
+            </select>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="text-sm font-semibold text-slate-700"><i class="fa-solid fa-arrow-down-a-z text-indigo-500 mr-1"></i>정렬 기준:</span>
+            <select id="submission-sort-order" class="border border-slate-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white font-medium">
+              <option value="student_asc">학년 / 반 / 번호 순 (기본)</option>
+              <option value="date_desc">제출일시 (최신순)</option>
+              <option value="date_asc">제출일시 (오래된순)</option>
+              <option value="name_asc">학생 이름 순</option>
             </select>
           </div>
         </div>
@@ -682,7 +691,7 @@
         refreshCurrentView();
       });
 
-      // 2. Students Listener (수정: 최초 1회만 샘플 학생 생성, 삭제 후 재생성 안 됨)
+      // 2. Students Listener
       let isStudentsInitialized = localStorage.getItem("students_init_done");
       onSnapshot(collection(db, "students"), (snapshot) => {
         if (snapshot.empty && !isStudentsInitialized) {
@@ -1133,7 +1142,7 @@
         alert(isLate ? "과제가 '지각' 제출되었습니다." : "과제가 성공적으로 제출되었습니다!");
       } catch (err) {
         console.error("Firestore submission error:", err);
-        alert("Firestore 저장 중 오류가 발생했습니다. (Base64 변환 저장 시 단일 문서 1MB 제한을 확인하세요.)");
+        alert("Firestore 저장 중 오류가 발생했습니다.");
       }
     }
 
@@ -1381,7 +1390,6 @@
         return;
       }
 
-      // Sort: deadlines first, then by order
       filtered.sort((a, b) => {
         if (a.deadline && b.deadline) return new Date(a.deadline) - new Date(b.deadline);
         if (a.deadline && !b.deadline) return -1;
@@ -1389,7 +1397,6 @@
         return (a.order || 0) - (b.order || 0);
       });
 
-      // Filter no-deadline items to handle arrow up/down limits
       const noDeadlineItems = filtered.filter(a => !a.deadline);
 
       tbody.innerHTML = filtered.map((a, idx) => {
@@ -1455,7 +1462,6 @@
         `;
       }).join('');
 
-      // Event Binding for Edit & Delete
       document.querySelectorAll('.btn-edit-assign').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const id = e.currentTarget.getAttribute('data-assign-id');
@@ -1470,7 +1476,6 @@
         });
       });
 
-      // Arrow Click Handlers
       document.querySelectorAll('.btn-move-order').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1480,7 +1485,6 @@
         });
       });
 
-      // Drag and Drop Event Listeners
       const draggables = tbody.querySelectorAll('tr.draggable');
       draggables.forEach(draggable => {
         draggable.addEventListener('dragstart', (e) => {
@@ -1662,6 +1666,17 @@
         return matchesTerm && matchesGrade && matchesClass;
       });
 
+      // 학년/반/번호 순 정렬
+      filtered.sort((a, b) => {
+        const gA = Number(a.grade) || 0, gB = Number(b.grade) || 0;
+        if (gA !== gB) return gA - gB;
+        const cA = Number(a.classNum) || 0, cB = Number(b.classNum) || 0;
+        if (cA !== cB) return cA - cB;
+        const nA = Number(a.num) || 0, nB = Number(b.num) || 0;
+        if (nA !== nB) return nA - nB;
+        return (a.studentId || "").localeCompare(b.studentId || "");
+      });
+
       document.getElementById("student-count-badge").innerText = filtered.length;
       const tbody = document.getElementById("admin-roster-table-body");
 
@@ -1708,16 +1723,39 @@
 
     function renderSubmissionsTable() {
       const assignSelect = document.getElementById("submission-filter-assignment");
+      const currentSelectedAssign = assignSelect.value || "all";
       const filteredAssignments = assignments.filter(a => a.term === currentTerm);
 
       assignSelect.innerHTML = `<option value="all">전체 과제 보기</option>` + 
-        filteredAssignments.map(a => `<option value="${a.id}">[${a.subject}] ${a.title}</option>`).join('');
+        filteredAssignments.map(a => `<option value="${a.id}" ${a.id === currentSelectedAssign ? 'selected' : ''}>[${a.subject}] ${a.title}</option>`).join('');
 
       const selectedAssignId = assignSelect.value;
       const filteredSubmissions = submissions.filter(s => {
         const matchesTerm = (s.term === currentTerm);
         const matchesAssign = selectedAssignId === 'all' || s.assignmentId === selectedAssignId;
         return matchesTerm && matchesAssign;
+      });
+
+      // 정렬 처리 (학년/반/번호 순, 제출일시 순, 이름 순)
+      const sortOption = document.getElementById("submission-sort-order")?.value || "student_asc";
+
+      filteredSubmissions.sort((a, b) => {
+        if (sortOption === "student_asc") {
+          const gA = Number(a.grade) || 0, gB = Number(b.grade) || 0;
+          if (gA !== gB) return gA - gB;
+          const cA = Number(a.classNum) || 0, cB = Number(b.classNum) || 0;
+          if (cA !== cB) return cA - cB;
+          const nA = Number(a.num) || 0, nB = Number(b.num) || 0;
+          if (nA !== nB) return nA - nB;
+          return (a.studentId || "").localeCompare(b.studentId || "");
+        } else if (sortOption === "date_desc") {
+          return new Date(b.submittedAt) - new Date(a.submittedAt);
+        } else if (sortOption === "date_asc") {
+          return new Date(a.submittedAt) - new Date(b.submittedAt);
+        } else if (sortOption === "name_asc") {
+          return (a.studentName || "").localeCompare(b.studentName || "");
+        }
+        return 0;
       });
 
       const tbody = document.getElementById("admin-submissions-table-body");
@@ -1730,7 +1768,7 @@
         <tr class="hover:bg-slate-50/50 transition">
           <td class="p-4">
             <div class="font-bold text-slate-900">${s.studentName}</div>
-            <div class="text-xs text-slate-400 font-mono">${s.studentId} (${s.grade}-${s.classNum}-${s.num})</div>
+            <div class="text-xs text-slate-400 font-mono">${s.studentId || ''} (${s.grade || ''}-${s.classNum || ''}-${s.num || ''})</div>
           </td>
           <td class="p-4">
             <div class="font-semibold text-xs text-slate-800">${s.assignmentTitle}</div>
@@ -1865,6 +1903,7 @@
       document.getElementById("roster-filter-class").addEventListener("change", renderStudentRosterTable);
 
       document.getElementById("submission-filter-assignment").addEventListener("change", renderSubmissionsTable);
+      document.getElementById("submission-sort-order").addEventListener("change", renderSubmissionsTable);
 
       document.getElementById("btn-add-term").addEventListener("click", addNewTerm);
       document.getElementById("btn-execute-reset").addEventListener("click", executeSelectedReset);
