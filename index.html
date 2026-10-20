@@ -1,1924 +1,223 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>과제 제출 플랫폼</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Noto Sans KR', sans-serif; }
-    .handwriting { font-family: 'Caveat', 'Noto Sans KR', cursive; }
-    .sticky-note {
-      background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      position: relative;
-    }
-    .sticky-note::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      right: 0;
-      border-width: 0 16px 16px 0;
-      border-style: solid;
-      border-color: #facc15 #f8fafc;
-      box-shadow: -1px 1px 2px rgba(0,0,0,0.1);
-    }
-    select option {
-      color: #1e293b !important;
-      background-color: #ffffff !important;
-    }
-    input[type="datetime-local"] {
-      font-size: 1.05rem !important;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-      cursor: pointer;
-      width: 28px;
-      height: 28px;
-      padding: 2px;
-      margin-left: 6px;
-      filter: invert(25%) sepia(90%) saturate(2000%) hue-rotate(240deg);
-    }
-    tr.draggable {
-      cursor: grab;
-    }
-    tr.draggable:active {
-      cursor: grabbing;
-    }
-    tr.dragging {
-      opacity: 0.5;
-      background-color: #e0e7ff !important;
-    }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>신현준T</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e4;--card:#fffdf7;--ink:#26312c;--mute:#7b857f;--line:#e4dcc6;--g:#1f4d3f;--g2:#2f6b58;--y:#f2b93b;--r:#d9573b;--b:#3b6fb6}
+*{box-sizing:border-box}body{margin:0;font:15px/1.6 'Noto Sans KR',sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh}
+aside{width:240px;flex-shrink:0;background:var(--g);color:#eaf3ee;padding:24px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+aside h1{font-size:22px;margin:0 8px 2px;font-weight:900}aside small{margin:0 8px 18px;color:#a9c7ba}
+aside button.nav{all:unset;cursor:pointer;padding:10px 14px;border-radius:10px;font-weight:500}
+aside button.nav:hover{background:#ffffff1a}aside button.nav.on{background:var(--y);color:#2b2200;font-weight:700}
+.who{margin-top:auto;background:#ffffff14;padding:12px;border-radius:12px;font-size:13px}
+main{flex:1;min-width:0;padding:28px 40px;max-width:1560px}
+h2{font-size:26px;margin:0 0 4px;font-weight:900}.sub{color:var(--mute);margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+a,.big,.row{overflow-wrap:anywhere}.md input,.md textarea{max-width:100%}
+.cal i.as{background:#fbe1da;color:var(--r);cursor:pointer}.cal i.dl{background:#fdf0cd;color:#8a6200;cursor:pointer}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--mute);margin-top:10px}.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+.chk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 12px;margin:8px 0 4px}.chk label{all:unset;display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer}.chk input{width:auto}
+.danger{border-color:#efc3b8}.danger h3{color:var(--r)}.btn.rd{background:var(--r)}.btn.rd:hover{background:#b8442b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 2px 0 var(--line);min-width:0}
+.card h3{margin:0 0 12px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.span2{grid-column:span 2}.full{grid-column:1/-1}
+.row{padding:10px 0;border-bottom:1px dashed var(--line)}.row:last-child{border:0}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 9px;border-radius:99px;background:#e7efe9;color:var(--g)}
+.tag.y{background:#fdf0cd;color:#8a6200}.tag.r{background:#fbe1da;color:var(--r)}.tag.b{background:#dfe9f7;color:var(--b)}
+input,select,textarea{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%;color:var(--ink)}
+input::placeholder,textarea::placeholder{color:#b3b8b4}
+textarea{min-height:90px}label{font-size:13px;font-weight:700;color:var(--mute);display:block;margin:10px 0 4px}
+.btn{font:inherit;font-weight:700;padding:9px 18px;border-radius:10px;border:0;background:var(--g);color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn:hover{background:var(--g2)}.btn.s{padding:5px 12px;font-size:13px}.btn.o{background:#fff;color:var(--g);border:1px solid var(--g)}.btn.d{background:#fff;color:var(--r);border:1px solid #efc3b8}
+.link{all:unset;cursor:pointer;font-weight:700;color:var(--ink);border-bottom:1px dashed transparent}.link:hover{color:var(--g2);border-color:var(--g2)}
+.meal{white-space:pre-line;line-height:1.9}.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:13px}
+.cal div{min-height:64px;padding:4px 6px;border-radius:8px;background:#fbf7ea;min-width:0}.cal .h{min-height:0;text-align:center;background:none;font-weight:700;color:var(--mute)}
+.cal .t{outline:2px solid var(--y)}.cal i{display:block;font-style:normal;font-size:11px;background:#dfe9f7;color:var(--b);border-radius:4px;padding:0 4px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--mute);font-size:12px;padding:8px;border-bottom:2px solid var(--line);white-space:nowrap}td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.login{max-width:420px;margin:12vh auto;width:100%}.flex{display:flex;gap:10px;align-items:center}.flex>div{flex:1}.mute{color:var(--mute);font-size:13px}
+.mb{position:fixed;inset:0;background:#1d2a2466;display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.md{background:var(--card);border-radius:18px;padding:28px;width:min(760px,100%);max-height:90vh;overflow:auto;position:relative;box-shadow:0 20px 60px #0003}
+.md.sm{width:min(400px,100%)}.x{position:absolute;top:14px;right:16px;border:0;background:none;font-size:26px;cursor:pointer;color:var(--mute)}
+.big{white-space:pre-wrap;font-size:17px;line-height:1.8;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;min-height:120px}
+.big img{max-width:100%;border-radius:10px;margin-top:10px}
+@media(max-width:1100px){.grid,.g2{grid-template-columns:1fr}.span2{grid-column:auto}aside{width:190px}main{padding:20px}}
+</style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
-
-  <!-- HEADER -->
-  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-xl shadow-inner">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight">과제 제출 플랫폼</h1>
-        </div>
-      </div>
-
-      <!-- Current Term & User Info -->
-      <div class="flex items-center space-x-4">
-        <div id="admin-term-selector" class="bg-indigo-800/80 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-2 border border-indigo-600">
-          <i class="fa-solid fa-calendar-alt text-indigo-300"></i>
-          <select id="global-term-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
-          </select>
-        </div>
-
-        <div id="student-term-badge" class="hidden bg-indigo-800/80 px-3 py-1.5 rounded-lg text-sm items-center space-x-2 border border-indigo-600 font-medium">
-          <i class="fa-solid fa-calendar-check text-indigo-300"></i>
-          <span id="student-term-text"></span>
-        </div>
-
-        <div id="user-info-badge" class="hidden items-center space-x-2 bg-indigo-900/60 px-3 py-1.5 rounded-lg border border-indigo-500/50">
-          <i id="user-role-icon" class="fa-solid fa-user text-indigo-300"></i>
-          <span id="user-name-display" class="font-semibold text-sm"></span>
-          <button id="btn-logout" class="ml-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded transition">
-            로그아웃
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-    <!-- AUTH VIEW -->
-    <div id="auth-view" class="max-w-md mx-auto my-12 bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
-      <div class="text-center mb-8">
-        <div class="inline-flex p-4 bg-indigo-50 text-indigo-600 rounded-full mb-3">
-          <i class="fa-solid fa-user-lock text-3xl"></i>
-        </div>
-        <h2 class="text-2xl font-bold text-slate-900">로그인</h2>
-        <p class="text-slate-500 text-sm mt-1">학번을 입력하세요.</p>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">개인 식별 번호 (학번)</label>
-          <input type="text" id="login-input" placeholder="예: 10101" 
-                 class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
-        </div>
-        <button id="btn-login" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-200">
-          로그인
-        </button>
-      </div>
-    </div>
-
-    <!-- STUDENT VIEW -->
-    <div id="student-view" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <span id="student-class-badge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full"></span>
-          <h2 class="text-2xl font-bold text-slate-900 mt-1"><span id="student-welcome-name"></span> 학생 환영합니다!</h2>
-          <p class="text-slate-500 text-sm">과제를 선택하여 여러 개의 제출물/소과제를 등록하고 관리하세요.</p>
-        </div>
-        <div class="flex items-center space-x-2 text-sm text-slate-600 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
-          <i class="fa-solid fa-calendar text-indigo-500"></i>
-          <span>적용 학기: <strong id="student-term-display"></strong></span>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-          <h3 class="font-bold text-lg text-slate-800 flex items-center">
-            <i class="fa-solid fa-list-check text-indigo-600 mr-2"></i> 과제 목록 및 제출 현황
-          </h3>
-        </div>
-        <div id="student-assignment-list" class="divide-y divide-slate-100">
-        </div>
-      </div>
-    </div>
-
-    <!-- ADMIN VIEW -->
-    <div id="admin-view" class="hidden space-y-6">
-      <div class="flex border-b border-slate-200 space-x-4">
-        <button id="tab-btn-assignments" class="py-3 px-4 font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center space-x-2">
-          <i class="fa-solid fa-tasks"></i> <span>과제 관리</span>
-        </button>
-        <button id="tab-btn-students" class="py-3 px-4 font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2">
-          <i class="fa-solid fa-user-graduate"></i> <span>학생 명단 관리</span>
-        </button>
-        <button id="tab-btn-submissions" class="py-3 px-4 font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2">
-          <i class="fa-solid fa-file-invoice"></i> <span>제출물</span>
-        </button>
-        <button id="tab-btn-settings" class="py-3 px-4 font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2">
-          <i class="fa-solid fa-cog"></i> <span>학년도/학기 및 데이터 관리</span>
-        </button>
-      </div>
-
-      <!-- 과제 관리 탭 -->
-      <div id="admin-tab-assignments" class="space-y-6">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-slate-900 flex items-center">
-              <i class="fa-solid fa-plus-circle text-indigo-600 mr-2"></i> 새 과제 생성
-            </h3>
-            <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full" id="admin-current-term-indicator"></span>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">과목명 <span class="text-rose-500">*</span></label>
-              <input type="text" id="assign-subject" placeholder="예: 국어, 수학" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">대상 학년</label>
-              <select id="assign-grade" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800">
-                <option value="1">1학년</option>
-                <option value="2">2학년</option>
-                <option value="3">3학년</option>
-              </select>
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-xs font-semibold text-slate-600 mb-1 text-indigo-700"><i class="fa-solid fa-clock mr-1"></i>제출 마감기한 설정</label>
-              <div class="flex items-center gap-2">
-                <input type="datetime-local" id="assign-deadline" class="w-full px-3 py-2 border-2 border-indigo-300 bg-indigo-50/40 rounded-xl text-slate-800 font-bold focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm">
-                <button type="button" id="btn-clear-deadline" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-3 py-2 rounded-xl text-xs transition shrink-0 border border-slate-300">
-                  <i class="fa-solid fa-xmark mr-1"></i>기한 없음
-                </button>
-              </div>
-            </div>
-
-            <div class="md:col-span-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-              <label class="block text-xs font-bold text-slate-700 mb-2">대상 학반 (복수 선택 가능)</label>
-              <div class="flex flex-wrap items-center gap-3 text-xs">
-                <label class="flex items-center space-x-1 font-semibold text-indigo-600 cursor-pointer">
-                  <input type="checkbox" id="class-checkbox-all" class="rounded text-indigo-600">
-                  <span>전체 반</span>
-                </label>
-                <span class="text-slate-300">|</span>
-                <div id="class-checkbox-container" class="flex flex-wrap gap-3"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mb-4">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">과제 제목 <span class="text-rose-500">*</span></label>
-            <input type="text" id="assign-title" placeholder="과제 제목을 입력하세요" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-          </div>
-
-          <div class="mb-4">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">과제 안내 / 지침 (선택 입력)</label>
-            <textarea id="assign-desc" rows="3" placeholder="학생들에게 안내할 과제 지침을 입력하세요" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">과제 양식 파일 (복수 선택 가능)</label>
-              <input type="file" id="assign-file-input" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-300 rounded-lg">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">참고 링크 (https://)</label>
-              <input type="url" id="assign-link-input" placeholder="https://example.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-          </div>
-
-          <div class="flex justify-end">
-            <button id="btn-create-assignment" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl transition text-sm flex items-center shadow-md">
-              <i class="fa-solid fa-paper-plane mr-2"></i> 과제 등록하기
-            </button>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-            <div>
-              <h3 class="font-bold text-slate-800 flex items-center">
-                <i class="fa-solid fa-folder-open text-indigo-600 mr-2"></i> 등록된 과제 목록
-              </h3>
-              <p class="text-xs text-slate-500 mt-1">※ 마감기한 순으로 정렬됩니다. (마감기한 없는 과제는 화살표 버튼 ▲▼ 또는 <b>드래그 앤 드롭</b>으로 순서를 변경할 수 있습니다.)</p>
-            </div>
-            <button id="btn-delete-selected-templates" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-rose-200 transition flex items-center">
-              <i class="fa-solid fa-trash-can mr-1.5"></i> 선택 삭제
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-600">
-              <thead class="bg-slate-50 text-xs text-slate-500 uppercase border-b border-slate-100">
-                <tr>
-                  <th class="p-4 w-10 text-center">
-                    <input type="checkbox" id="select-all-templates" class="rounded text-indigo-600">
-                  </th>
-                  <th class="p-4">순서</th>
-                  <th class="p-4">과목</th>
-                  <th class="p-4">대상</th>
-                  <th class="p-4">과제명 및 첨부 파일</th>
-                  <th class="p-4">마감기한</th>
-                  <th class="p-4 text-center">관리</th>
-                </tr>
-              </thead>
-              <tbody id="admin-templates-table-body" class="divide-y divide-slate-100">
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- 학생 명단 관리 탭 -->
-      <div id="admin-tab-students" class="hidden space-y-6">
-        <!-- 학기 명단 동기화 안내 및 실행 영역 -->
-        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-          <div class="flex items-center space-x-3">
-            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-sm">
-              <i class="fa-solid fa-arrows-rotate text-lg"></i>
-            </div>
-            <div>
-              <h4 class="font-bold text-indigo-900 text-sm"> 다음 학기에도 동일 명단 사용</h4>
-              <p class="text-xs text-indigo-700 mt-0.5">이전 학기에 등록된 학생 명단을 현재 학기(<span class="font-bold text-indigo-900" id="roster-sync-term-display"></span>)로 그대로 가져옵니다.</p>
-            </div>
-          </div>
-          <button id="btn-sync-roster-from-prev" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition shrink-0 flex items-center">
-            <i class="fa-solid fa-copy mr-1.5"></i> 이전 학기 명단 가져오기
-          </button>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center">
-            <i class="fa-solid fa-file-excel text-emerald-600 mr-2"></i> 엑셀 붙여넣기 명단 빠른 등록
-          </h3>
-          <p class="text-slate-500 text-xs mb-3">엑셀 등에서 복사한 데이터를 붙여넣으세요. (형식: 학년 [탭] 반 [탭] 번호 [탭] 이름)</p>
-          <textarea id="excel-paste-input" rows="4" placeholder="1	1	1	신현준&#10;1	1	2	홍길동" class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none mb-3"></textarea>
-          <div class="flex justify-between items-center">
-            <span class="text-xs text-slate-400">현재 활성화된 학년도/학기로 자동 저장됩니다.</span>
-            <button id="btn-import-roster" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-xl text-sm transition shadow-sm">
-              <i class="fa-solid fa-file-import mr-1.5"></i> 명단 일괄 추가
-            </button>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 flex items-center">
-              <i class="fa-solid fa-users text-indigo-600 mr-2"></i> 등록된 학생 명단 (<span id="student-count-badge">0</span>명)
-            </h3>
-            <div class="flex space-x-2">
-              <select id="roster-filter-grade" class="text-xs border border-slate-300 rounded-lg px-2 py-1 text-slate-800">
-                <option value="all">전체 학년</option>
-                <option value="1">1학년</option>
-                <option value="2">2학년</option>
-                <option value="3">3학년</option>
-              </select>
-              <select id="roster-filter-class" class="text-xs border border-slate-300 rounded-lg px-2 py-1 text-slate-800">
-                <option value="all">전체 반</option>
-              </select>
-            </div>
-          </div>
-          <div class="max-h-96 overflow-y-auto">
-            <table class="w-full text-left text-sm text-slate-600">
-              <thead class="bg-slate-50 text-xs text-slate-500 uppercase sticky top-0 border-b border-slate-100">
-                <tr>
-                  <th class="p-3">학번</th>
-                  <th class="p-3">학년</th>
-                  <th class="p-3">반</th>
-                  <th class="p-3">번호</th>
-                  <th class="p-3">이름</th>
-                  <th class="p-3 text-center">삭제</th>
-                </tr>
-              </thead>
-              <tbody id="admin-roster-table-body" class="divide-y divide-slate-100">
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- 제출물 탭 -->
-      <div id="admin-tab-submissions" class="hidden space-y-6">
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-4 justify-between items-center">
-          <div class="flex items-center space-x-3">
-            <span class="text-sm font-semibold text-slate-700"><i class="fa-solid fa-filter text-indigo-500 mr-1"></i>과제 필터:</span>
-            <select id="submission-filter-assignment" class="border border-slate-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800">
-            </select>
-          </div>
-          <div class="flex items-center space-x-3">
-            <span class="text-sm font-semibold text-slate-700"><i class="fa-solid fa-arrow-down-a-z text-indigo-500 mr-1"></i>정렬 기준:</span>
-            <select id="submission-sort-order" class="border border-slate-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white font-medium">
-              <option value="student_asc">학년 / 반 / 번호 순 (기본)</option>
-              <option value="date_desc">제출일시 (최신순)</option>
-              <option value="date_asc">제출일시 (오래된순)</option>
-              <option value="name_asc">학생 이름 순</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="p-5 border-b border-slate-100 bg-slate-50/50">
-            <h3 class="font-bold text-slate-800 flex items-center">
-              <i class="fa-solid fa-paperclip text-indigo-600 mr-2"></i> 학생 제출물 현황
-            </h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-600">
-              <thead class="bg-slate-50 text-xs text-slate-500 uppercase border-b border-slate-100">
-                <tr>
-                  <th class="p-4">학번/이름</th>
-                  <th class="p-4">과제 / 소과제 제목</th>
-                  <th class="p-4">제출일시 및 상태</th>
-                  <th class="p-4">제출 내용 및 첨부</th>
-                  <th class="p-4">AI 피드백</th>
-                  <th class="p-4 text-center">작업</th>
-                </tr>
-              </thead>
-              <tbody id="admin-submissions-table-body" class="divide-y divide-slate-100">
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- 학년도/학기 설정 및 데이터 초기화 -->
-      <div id="admin-tab-settings" class="hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center">
-              <i class="fa-solid fa-calendar-plus text-indigo-600 mr-2"></i> 학년도/학기 관리
-            </h3>
-            <div class="flex gap-2 mb-4">
-              <input type="text" id="new-term-input" placeholder="예: 2026학년도 2학기" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-              <button id="btn-add-term" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl text-sm transition shrink-0">
-                추가
-              </button>
-            </div>
-
-            <h4 class="font-bold text-xs text-slate-500 uppercase tracking-wider mb-2">등록된 학기 목록</h4>
-            <ul id="terms-list-group" class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden text-slate-800">
-            </ul>
-          </div>
-
-          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center text-rose-600">
-              <i class="fa-solid fa-triangle-exclamation mr-2"></i> 선택 데이터 초기화
-            </h3>
-            <p class="text-xs text-slate-500 mb-4">원하는 항목만 선택하여 데이터를 삭제 및 초기화할 수 있습니다.</p>
-
-            <div class="space-y-3 bg-rose-50/50 p-4 rounded-xl border border-rose-100 mb-5">
-              <label class="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" id="reset-target-assignments" class="rounded text-rose-600 focus:ring-rose-500">
-                <span>등록된 과제 데이터 전체 초기화</span>
-              </label>
-              <label class="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" id="reset-target-roster" class="rounded text-rose-600 focus:ring-rose-500">
-                <span>학생 명단 데이터 전체 초기화</span>
-              </label>
-              <label class="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" id="reset-target-submissions" class="rounded text-rose-600 focus:ring-rose-500">
-                <span>학생 제출물 및 피드백 데이터 초기화</span>
-              </label>
-            </div>
-
-            <button id="btn-execute-reset" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-md shadow-rose-200">
-              선택한 데이터 초기화 실행
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ASSIGNMENT EDIT MODAL -->
-  <div id="edit-assignment-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-lg text-slate-900 flex items-center">
-          <i class="fa-solid fa-pen-to-square text-indigo-600 mr-2"></i> 등록 과제 정보 수정
-        </h3>
-        <button id="btn-close-edit-modal-x" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-      </div>
-
-      <input type="hidden" id="edit-assign-id">
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">과목명 <span class="text-rose-500">*</span></label>
-          <input type="text" id="edit-assign-subject" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">대상 학년</label>
-          <select id="edit-assign-grade" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800">
-            <option value="1">1학년</option>
-            <option value="2">2학년</option>
-            <option value="3">3학년</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1 text-indigo-700"><i class="fa-solid fa-clock mr-1"></i>제출 마감기한 설정</label>
-        <div class="flex items-center gap-2">
-          <input type="datetime-local" id="edit-assign-deadline" class="w-full px-3 py-2 border-2 border-indigo-300 bg-indigo-50/40 rounded-xl text-slate-800 font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
-          <button type="button" id="btn-clear-edit-deadline" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-2 rounded-xl text-xs transition shrink-0 border border-rose-200">
-            <i class="fa-solid fa-calendar-xmark mr-1"></i>기한 없애기
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-        <label class="block text-xs font-bold text-slate-700 mb-2">대상 학반</label>
-        <div class="flex flex-wrap items-center gap-3 text-xs">
-          <label class="flex items-center space-x-1 font-semibold text-indigo-600 cursor-pointer">
-            <input type="checkbox" id="edit-class-checkbox-all" class="rounded text-indigo-600">
-            <span>전체 반</span>
-          </label>
-          <span class="text-slate-300">|</span>
-          <div id="edit-class-checkbox-container" class="flex flex-wrap gap-3"></div>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">과제 제목 <span class="text-rose-500">*</span></label>
-        <input type="text" id="edit-assign-title" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">과제 안내 / 지침 (선택)</label>
-        <textarea id="edit-assign-desc" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-      </div>
-
-      <div class="bg-indigo-50/40 p-4 rounded-xl border border-indigo-100 space-y-3">
-        <div>
-          <label class="block text-xs font-bold text-indigo-900 mb-1.5"><i class="fa-solid fa-paperclip mr-1"></i>기존 첨부 파일 보존 목록</label>
-          <div id="edit-assign-existing-files-container" class="space-y-1.5">
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-indigo-100">
-          <label class="block text-xs font-semibold text-slate-600 mb-1">새 파일 추가 업로드 (선택 / 복수 가능)</label>
-          <input type="file" id="edit-assign-file-input" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 border border-slate-300 rounded-lg bg-white">
-          <p class="text-[11px] text-slate-400 mt-1">※ 새로 선택한 파일은 기존 보존 목록에 추가됩니다.</p>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">참고 링크 (https://)</label>
-        <input type="url" id="edit-assign-link-input" placeholder="https://example.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-      </div>
-
-      <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-        <button id="btn-close-edit-modal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition">취소</button>
-        <button id="btn-save-edit-assignment" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl shadow-md transition flex items-center">
-          <i class="fa-solid fa-save mr-1.5"></i> 변경사항 저장
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SUBMIT MODAL (학생 과제 제출 팝업) -->
-  <div id="submit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-lg text-slate-900" id="modal-assign-title">과제 제출하기</h3>
-        <button id="btn-close-submit-modal-x" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-      </div>
-
-      <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 space-y-2">
-        <div class="flex justify-between items-center font-bold">
-          <span id="modal-deadline-display" class="text-rose-600"></span>
-        </div>
-        <p id="modal-assign-desc"></p>
-        <div id="modal-assign-attachments" class="pt-2 border-t border-indigo-100 flex flex-wrap gap-2 hidden"></div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">제출물 제목 / 소과제 제목 (선택)</label>
-        <input type="text" id="submit-sub-title" placeholder="예: 1차 제출 / 서론 작성 / 최종보고서" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">내용 / 답안 작성 (선택)</label>
-        <textarea id="submit-text-content" rows="4" placeholder="과제 답안 및 설명을 상세히 작성하세요" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-      </div>
-
-      <div class="space-y-3 pt-1 border-t border-slate-100">
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-xs font-semibold text-slate-600">파일 업로드 (HWP, PDF, ZIP 등)</label>
-          </div>
-          <p class="text-[11px] text-indigo-600 font-semibold mb-1">
-            <i class="fa-solid fa-circle-info mr-1"></i>파일명 예시: 10203 신현준_탐구1_진로 독서 활동지
-          </p>
-          <input type="file" id="submit-file-input" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-300 rounded-lg">
-          <div id="existing-file-info" class="text-xs text-indigo-600 mt-1 hidden"></div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">웹사이트 URL 링크 제출 (https://)</label>
-          <input type="url" id="submit-web-url" placeholder="https://github.com 또는 https://docs.google.com 등" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-      </div>
-
-      <div class="flex justify-end space-x-2 pt-2">
-        <button id="btn-close-submit-modal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition">취소</button>
-        <button id="btn-process-submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl shadow-md transition flex items-center">
-          <i class="fa-solid fa-paper-plane mr-1.5"></i> <span id="submit-modal-btn-text">제출하기</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      doc, 
-      getDocs, 
-      setDoc, 
-      updateDoc, 
-      deleteDoc, 
-      onSnapshot, 
-      writeBatch 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdyDgmPFg-Py1ej87klSWqXB8TC5yixkU",
-      authDomain: "assignment-submission-hs.firebaseapp.com",
-      databaseURL: "https://assignment-submission-hs-default-rtdb.firebaseio.com",
-      projectId: "assignment-submission-hs",
-      storageBucket: "assignment-submission-hs.firebasestorage.app",
-      messagingSenderId: "702547388370",
-      appId: "1:702547388370:web:f47dc11400725b67324a0b"
-    };
-
-    // Initialize Firebase & Firestore
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
-
-    // Global State
-    let terms = [];
-    let currentTerm = "";
-    let currentUser = null;
-    let students = [];
-    let assignments = [];
-    let submissions = [];
-    let selectedAssignmentForSubmit = null;
-    let currentEditingSubmissionId = null;
-    let tempEditFiles = [];
-
-    // Drag & Drop State
-    let draggedRow = null;
-
-    function getCurrentCalculatedTerm() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth() + 1;
-      const semester = (month >= 3 && month <= 8) ? "1학기" : "2학기";
-      const calcYear = (month < 3) ? year - 1 : year;
-      return `${calcYear}학년도 ${semester}`;
-    }
-
-    function getFormattedCurrentTimestamp() {
-      const d = new Date();
-      const pad = (n) => n.toString().padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-
-    function generateMockAIFeedback(studentName, title) {
-      return `💡 [AI 피드백]\n${studentName} 학생, 제출물이 성공적으로 접수되었습니다.\n\n✨ 성실한 답변 작성 및 첨부가 확인되었습니다.\n📌 검토: 전체적인 완성도가 높으나 구체적 근거를 조금 더 보완해보세요!`;
-    }
-
-    // Dynamic Class Checkboxes Setup
-    function generateClassCheckboxes() {
-      const classContainer = document.getElementById("class-checkbox-container");
-      const editClassContainer = document.getElementById("edit-class-checkbox-container");
-      const rosterFilterClass = document.getElementById("roster-filter-class");
-
-      if (classContainer) {
-        classContainer.innerHTML = Array.from({length: 9}, (_, i) => i + 1).map(i => `
-          <label class="flex items-center space-x-1 text-slate-700 cursor-pointer hover:text-indigo-600 transition">
-            <input type="checkbox" value="${i}" class="class-checkbox rounded text-indigo-600">
-            <span>${i}반</span>
-          </label>
-        `).join('');
-      }
-
-      if (editClassContainer) {
-        editClassContainer.innerHTML = Array.from({length: 9}, (_, i) => i + 1).map(i => `
-          <label class="flex items-center space-x-1 text-slate-700 cursor-pointer hover:text-indigo-600 transition">
-            <input type="checkbox" value="${i}" class="edit-class-checkbox rounded text-indigo-600">
-            <span>${i}반</span>
-          </label>
-        `).join('');
-      }
-
-      if (rosterFilterClass) {
-        rosterFilterClass.innerHTML = `<option value="all">전체 반</option>` + 
-          Array.from({length: 9}, (_, i) => `<option value="${i + 1}">${i + 1}반</option>`).join('');
-      }
-
-      document.querySelectorAll('.class-checkbox').forEach(cb => {
-        cb.addEventListener('change', checkIndividualClass);
-      });
-      document.querySelectorAll('.edit-class-checkbox').forEach(cb => {
-        cb.addEventListener('change', checkIndividualEditClass);
-      });
-    }
-
-    // Firestore Realtime Synchronization
-    function setupFirestoreListeners() {
-      // 1. Terms Listener
-      onSnapshot(collection(db, "terms"), (snapshot) => {
-        if (snapshot.empty) {
-          const defaultTerm = getCurrentCalculatedTerm();
-          setDoc(doc(db, "terms", defaultTerm), { name: defaultTerm, createdAt: new Date().toISOString() });
-          return;
-        }
-        terms = [];
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          terms.push(data.name || docSnap.id);
-        });
-        if (!currentTerm || !terms.includes(currentTerm)) {
-          currentTerm = terms[0];
-        }
-        renderTermSelectors();
-        refreshCurrentView();
-      });
-
-      // 2. Students Listener
-      let isStudentsInitialized = localStorage.getItem("students_init_done");
-      onSnapshot(collection(db, "students"), (snapshot) => {
-        if (snapshot.empty && !isStudentsInitialized) {
-          localStorage.setItem("students_init_done", "true");
-          isStudentsInitialized = "true";
-          const defaultTerm = getCurrentCalculatedTerm();
-          const defaultStudents = [
-            { id: `${defaultTerm}_10601`, studentId: "10601", grade: 1, classNum: 6, num: 1, name: "강나경", term: defaultTerm },
-            { id: `${defaultTerm}_10602`, studentId: "10602", grade: 1, classNum: 6, num: 2, name: "고예주", term: defaultTerm },
-            { id: `${defaultTerm}_30101`, studentId: "30101", grade: 3, classNum: 1, num: 1, name: "강민서", term: defaultTerm }
-          ];
-          defaultStudents.forEach(s => {
-            setDoc(doc(db, "students", s.id), s);
-          });
-          return;
-        }
-
-        if (!snapshot.empty) {
-          localStorage.setItem("students_init_done", "true");
-          isStudentsInitialized = "true";
-        }
-
-        students = [];
-        snapshot.forEach(docSnap => {
-          students.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        refreshCurrentView();
-      });
-
-      // 3. Assignments Listener
-      onSnapshot(collection(db, "assignments"), (snapshot) => {
-        assignments = [];
-        snapshot.forEach(docSnap => {
-          assignments.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        assignments.sort((a, b) => (a.order || 0) - (b.order || 0));
-        refreshCurrentView();
-      });
-
-      // 4. Submissions Listener
-      onSnapshot(collection(db, "submissions"), (snapshot) => {
-        submissions = [];
-        snapshot.forEach(docSnap => {
-          submissions.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        refreshCurrentView();
-      });
-    }
-
-    function refreshCurrentView() {
-      if (currentUser?.role === 'student') {
-        renderStudentAssignments();
-      } else if (currentUser?.role === 'admin') {
-        renderAdminAssignmentsTable();
-        renderStudentRosterTable();
-        renderSubmissionsTable();
-      }
-    }
-
-    function renderTermSelectors() {
-      const globalSelect = document.getElementById("global-term-select");
-      globalSelect.innerHTML = terms.map(t => `<option value="${t}" ${t === currentTerm ? 'selected' : ''}>${t}</option>`).join('');
-
-      document.getElementById("admin-current-term-indicator").innerText = `현재 선택 학기: ${currentTerm}`;
-      const rosterSyncDisplay = document.getElementById("roster-sync-term-display");
-      if (rosterSyncDisplay) rosterSyncDisplay.innerText = currentTerm;
-      
-      const termsListGroup = document.getElementById("terms-list-group");
-      if (termsListGroup) {
-        termsListGroup.innerHTML = terms.map((t, index) => `
-          <li class="px-4 py-3 text-sm flex justify-between items-center bg-white border-b border-slate-100 last:border-none">
-            <span class="font-medium text-slate-800">${t} ${t === currentTerm ? '<span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded ml-2 font-bold">현재 활성</span>' : ''}</span>
-            <div class="flex items-center space-x-2">
-              ${t !== currentTerm ? `<button data-term-index="${index}" class="btn-delete-term text-xs text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded">삭제</button>` : ''}
-            </div>
-          </li>
-        `).join('');
-
-        document.querySelectorAll('.btn-delete-term').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const idx = parseInt(e.target.getAttribute('data-term-index'), 10);
-            deleteTerm(idx);
-          });
-        });
-      }
-    }
-
-    function changeGlobalTerm(newTerm) {
-      currentTerm = newTerm;
-      renderTermSelectors();
-      refreshCurrentView();
-    }
-
-    async function addNewTerm() {
-      const val = document.getElementById("new-term-input").value.trim();
-      if (!val) return;
-      if (!terms.includes(val)) {
-        await setDoc(doc(db, "terms", val), { name: val, createdAt: new Date().toISOString() });
-        document.getElementById("new-term-input").value = "";
-      }
-    }
-
-    async function deleteTerm(index) {
-      if (terms.length <= 1) {
-        alert("최소 하나의 학기는 유지되어야 합니다.");
-        return;
-      }
-      const termToDelete = terms[index];
-      await deleteDoc(doc(db, "terms", termToDelete));
-    }
-
-    // Authentication Logic
-    function login() {
-      const val = document.getElementById("login-input").value.trim();
-      if (!val) return;
-
-      if (val === "2020068986") {
-        currentUser = { role: "admin", name: "관리자" };
-        showView("admin");
-      } else {
-        const student = students.find(s => s.id === val || s.studentId === val);
-        if (student) {
-          currentUser = { role: "student", data: student };
-          showView("student");
-        } else {
-          alert(`등록되지 않은 학번입니다 (${val}). 입력 정보를 확인하세요.`);
-        }
-      }
-    }
-
-    function logout() {
-      currentUser = null;
-      document.getElementById("login-input").value = "";
-      document.getElementById("user-info-badge").classList.add("hidden");
-      document.getElementById("user-info-badge").classList.remove("flex");
-      showView("auth");
-    }
-
-    function showView(viewName) {
-      document.getElementById("auth-view").classList.add("hidden");
-      document.getElementById("student-view").classList.add("hidden");
-      document.getElementById("admin-view").classList.add("hidden");
-
-      const adminTermSelector = document.getElementById("admin-term-selector");
-      const studentTermBadge = document.getElementById("student-term-badge");
-
-      if (viewName === "auth") {
-        document.getElementById("auth-view").classList.remove("hidden");
-        adminTermSelector.classList.remove("hidden");
-        studentTermBadge.classList.add("hidden");
-      } else if (viewName === "student") {
-        document.getElementById("student-view").classList.remove("hidden");
-        document.getElementById("user-info-badge").classList.remove("hidden");
-        document.getElementById("user-info-badge").classList.add("flex");
-        
-        const sData = currentUser.data;
-        const studentId = sData.id || sData.studentId;
-        document.getElementById("user-name-display").innerText = `${sData.name} (${studentId})`;
-        document.getElementById("student-welcome-name").innerText = sData.name;
-        document.getElementById("student-class-badge").innerText = `${sData.grade}학년 ${sData.classNum}반 ${sData.num}번`;
-
-        document.getElementById("student-term-display").innerText = currentTerm;
-        document.getElementById("student-term-text").innerText = currentTerm;
-        
-        adminTermSelector.classList.add("hidden");
-        studentTermBadge.classList.remove("hidden");
-        studentTermBadge.classList.add("flex");
-
-        renderStudentAssignments();
-      } else if (viewName === "admin") {
-        document.getElementById("admin-view").classList.remove("hidden");
-        document.getElementById("user-info-badge").classList.remove("hidden");
-        document.getElementById("user-info-badge").classList.add("flex");
-        document.getElementById("user-name-display").innerText = currentUser.name;
-        
-        adminTermSelector.classList.remove("hidden");
-        studentTermBadge.classList.add("hidden");
-
-        switchAdminTab("assignments");
-      }
-    }
-
-    function renderStudentAssignments() {
-      const container = document.getElementById("student-assignment-list");
-      if (!currentUser || !currentUser.data) return;
-
-      const student = currentUser.data;
-      const studentId = student.studentId || student.id;
-
-      const filtered = assignments.filter(a => {
-        const matchesTerm = (a.term === currentTerm);
-        const matchesGrade = (a.grade.toString() === student.grade.toString());
-        const matchesClass = a.classes.includes("all") || a.classes.includes(student.classNum.toString());
-        return matchesTerm && matchesGrade && matchesClass;
-      });
-
-      filtered.sort((a, b) => {
-        if (a.deadline && b.deadline) return new Date(a.deadline) - new Date(b.deadline);
-        if (a.deadline && !b.deadline) return -1;
-        if (!a.deadline && b.deadline) return 1;
-        return (a.order || 0) - (b.order || 0);
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm">제출 가능한 과제가 없습니다.</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(a => {
-        const mySubmissions = submissions.filter(s => s.assignmentId === a.id && (s.studentId === studentId || s.studentId === student.id));
-        const deadlineText = a.deadline ? new Date(a.deadline).toLocaleString('ko-KR') : "마감기한 없음";
-
-        let subListHTML = "";
-        if (mySubmissions.length > 0) {
-          subListHTML = `
-            <div class="mt-3 space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-              <div class="text-xs font-bold text-slate-600 flex justify-between items-center">
-                <span><i class="fa-solid fa-folder-closed mr-1"></i>내가 제출한 소과제/제출물 (${mySubmissions.length}개)</span>
-              </div>
-              <div class="divide-y divide-slate-200">
-                ${mySubmissions.map(sub => `
-                  <div class="py-2 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div class="space-y-0.5">
-                      <div class="font-semibold text-slate-800 flex items-center gap-1.5">
-                        <span>${sub.subTitle || '과제 제출물'}</span>
-                        ${sub.isLate ? `<span class="bg-rose-100 text-rose-700 font-bold px-1.5 py-0.2 rounded text-[10px]">지각 제출</span>` : `<span class="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.2 rounded text-[10px]">정상 제출</span>`}
-                      </div>
-                      <div class="text-[11px] text-slate-400">제출일시: ${sub.submittedAt}</div>
-                      ${sub.fileName ? `<div class="text-[11px] text-indigo-600"><a href="${sub.fileData}" download="${sub.fileName}" class="hover:underline"><i class="fa-solid fa-file-arrow-down mr-1"></i>${sub.fileName}</a></div>` : ''}
-                      ${sub.webUrl ? `<div class="text-[11px] text-sky-600"><a href="${sub.webUrl}" target="_blank" class="hover:underline"><i class="fa-solid fa-link mr-1"></i>${sub.webUrl}</a></div>` : ''}
-                    </div>
-                    <div class="flex items-center space-x-1 shrink-0">
-                      <button data-assign-id="${a.id}" data-sub-id="${sub.id}" class="btn-edit-sub bg-white hover:bg-slate-100 text-slate-700 px-2 py-1 rounded border text-[11px] transition">수정</button>
-                      <button data-sub-id="${sub.id}" class="btn-delete-sub bg-white hover:bg-rose-50 text-rose-600 px-2 py-1 rounded border border-rose-200 text-[11px] transition">삭제</button>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
-        }
-
-        const filesHTML = (a.files && a.files.length > 0) 
-          ? a.files.map(f => `<a href="${f.fileData}" download="${f.fileName}" class="inline-flex items-center text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100"><i class="fa-solid fa-file-arrow-down mr-1"></i>${f.fileName}</a>`).join(' ')
-          : '';
-
-        return `
-          <div class="p-5 hover:bg-slate-50/50 transition border-b border-slate-100 last:border-none">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div class="space-y-1.5 flex-1">
-                <div class="flex items-center space-x-2 flex-wrap gap-y-1">
-                  <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded font-bold">${a.subject}</span>
-                  <h4 class="font-bold text-slate-900">${a.title}</h4>
-                </div>
-                ${a.desc ? `<p class="text-xs text-slate-500">${a.desc}</p>` : ''}
-                <div class="text-xs text-rose-600 font-medium">
-                  <i class="fa-solid fa-clock mr-1"></i>마감 기한: ${deadlineText}
-                </div>
-                
-                <div class="flex items-center space-x-2 pt-1 flex-wrap gap-1">
-                  ${filesHTML}
-                  ${a.linkUrl ? `<a href="${a.linkUrl}" target="_blank" class="inline-flex items-center text-xs bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded hover:bg-sky-100"><i class="fa-solid fa-link mr-1"></i>참고 링크</a>` : ''}
-                </div>
-              </div>
-
-              <div class="flex items-center space-x-2 shrink-0">
-                <button data-assign-id="${a.id}" class="btn-open-submit text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center">
-                  <i class="fa-solid fa-plus-circle mr-1.5"></i> 제출물/소과제 추가
-                </button>
-              </div>
-            </div>
-
-            ${subListHTML}
-          </div>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.btn-open-submit').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const assignId = e.currentTarget.getAttribute('data-assign-id');
-          openSubmitModal(assignId);
-        });
-      });
-
-      document.querySelectorAll('.btn-edit-sub').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const assignId = e.currentTarget.getAttribute('data-assign-id');
-          const subId = e.currentTarget.getAttribute('data-sub-id');
-          openSubmitModal(assignId, subId);
-        });
-      });
-
-      document.querySelectorAll('.btn-delete-sub').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const subId = e.currentTarget.getAttribute('data-sub-id');
-          deleteSubmission(subId);
-        });
-      });
-    }
-
-    function openSubmitModal(assignId, submissionId = null) {
-      selectedAssignmentForSubmit = assignments.find(a => a.id === assignId);
-      if (!selectedAssignmentForSubmit) return;
-
-      currentEditingSubmissionId = submissionId;
-      const a = selectedAssignmentForSubmit;
-      
-      document.getElementById("modal-assign-title").innerText = `[${a.subject}] ${a.title}`;
-      document.getElementById("modal-assign-desc").innerText = a.desc || "안내사항 없음";
-      
-      const deadlineText = a.deadline ? `마감기한: ${new Date(a.deadline).toLocaleString('ko-KR')}` : "마감기한 없음";
-      document.getElementById("modal-deadline-display").innerText = deadlineText;
-
-      const attachBox = document.getElementById("modal-assign-attachments");
-      let attachHTML = "";
-      if (a.files && a.files.length > 0) {
-        attachHTML += a.files.map(f => `<a href="${f.fileData}" download="${f.fileName}" class="inline-flex items-center text-xs bg-white text-amber-800 border border-amber-300 px-2 py-1 rounded shadow-sm"><i class="fa-solid fa-file-arrow-down mr-1"></i>양식 (${f.fileName})</a>`).join(' ');
-      }
-      if (a.linkUrl) {
-        attachHTML += `<a href="${a.linkUrl}" target="_blank" class="inline-flex items-center text-xs bg-white text-sky-800 border border-sky-300 px-2 py-1 rounded shadow-sm"><i class="fa-solid fa-link mr-1"></i>참고 링크 열기</a>`;
-      }
-
-      if (attachHTML) {
-        attachBox.innerHTML = attachHTML;
-        attachBox.classList.remove("hidden");
-      } else {
-        attachBox.classList.add("hidden");
-      }
-
-      const fileInfo = document.getElementById("existing-file-info");
-      document.getElementById("submit-file-input").value = "";
-
-      if (submissionId) {
-        const sub = submissions.find(s => s.id === submissionId);
-        if (sub) {
-          document.getElementById("submit-sub-title").value = sub.subTitle || "";
-          document.getElementById("submit-text-content").value = sub.content || "";
-          document.getElementById("submit-web-url").value = sub.webUrl || "";
-          if (sub.fileName) {
-            fileInfo.innerText = `현재 등록된 파일: ${sub.fileName} (새 파일 선택 시 교체됩니다)`;
-            fileInfo.classList.remove("hidden");
-          } else {
-            fileInfo.classList.add("hidden");
-          }
-          document.getElementById("submit-modal-btn-text").innerText = "수정 완료";
-        }
-      } else {
-        document.getElementById("submit-sub-title").value = "";
-        document.getElementById("submit-text-content").value = "";
-        document.getElementById("submit-web-url").value = "";
-        fileInfo.classList.add("hidden");
-        document.getElementById("submit-modal-btn-text").innerText = "제출하기";
-      }
-
-      document.getElementById("submit-modal").classList.remove("hidden");
-      document.getElementById("submit-modal").classList.add("flex");
-    }
-
-    function closeSubmitModal() {
-      document.getElementById("submit-modal").classList.add("hidden");
-      document.getElementById("submit-modal").classList.remove("flex");
-      currentEditingSubmissionId = null;
-    }
-
-    async function processStudentSubmission() {
-      const subTitle = document.getElementById("submit-sub-title").value.trim();
-      const content = document.getElementById("submit-text-content").value.trim();
-      const webUrl = document.getElementById("submit-web-url").value.trim();
-      const fileInput = document.getElementById("submit-file-input");
-
-      if (!content && !webUrl && fileInput.files.length === 0 && !currentEditingSubmissionId) {
-        alert("내용, 파일 업로드, 또는 웹 링크 중 하나 이상을 제출해야 합니다.");
-        return;
-      }
-
-      const student = currentUser.data;
-      const studentId = student.studentId || student.id;
-      const assign = selectedAssignmentForSubmit;
-
-      let fileName = "";
-      let fileData = "";
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        if (file.size > MAX_FILE_SIZE_BYTES) {
-          alert("파일 크기가 10MB를 초과하여 제출할 수 없습니다.");
-          return;
-        }
-        fileName = file.name;
-        fileData = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.readAsDataURL(file);
-        });
-      }
-
-      const submissionTimestamp = getFormattedCurrentTimestamp();
-      let isLate = false;
-      if (assign.deadline) {
-        const now = new Date();
-        const deadlineDate = new Date(assign.deadline);
-        if (now > deadlineDate) {
-          isLate = true;
-        }
-      }
-
-      const aiFeedback = generateMockAIFeedback(student.name, assign.title);
-
-      try {
-        if (currentEditingSubmissionId) {
-          const updateObj = {
-            subTitle: subTitle || "제출물",
-            content: content,
-            webUrl: webUrl,
-            submittedAt: submissionTimestamp,
-            isLate: isLate
-          };
-          if (fileName && fileData) {
-            updateObj.fileName = fileName;
-            updateObj.fileData = fileData;
-          }
-          await updateDoc(doc(db, "submissions", currentEditingSubmissionId), updateObj);
-        } else {
-          const subId = "sub_" + Date.now();
-          const newSubData = {
-            id: subId,
-            assignmentId: assign.id,
-            assignmentTitle: assign.title,
-            subTitle: subTitle || "제출물",
-            studentId: studentId,
-            studentName: student.name,
-            grade: student.grade,
-            classNum: student.classNum,
-            num: student.num,
-            content: content,
-            fileName: fileName,
-            fileData: fileData,
-            webUrl: webUrl,
-            submittedAt: submissionTimestamp,
-            isLate: isLate,
-            feedback: aiFeedback,
-            term: currentTerm
-          };
-
-          await setDoc(doc(db, "submissions", subId), newSubData);
-        }
-
-        closeSubmitModal();
-        alert(isLate ? "과제가 '지각' 제출되었습니다." : "과제가 성공적으로 제출되었습니다!");
-      } catch (err) {
-        console.error("Firestore submission error:", err);
-        alert("Firestore 저장 중 오류가 발생했습니다.");
-      }
-    }
-
-    function toggleAllClasses(master) {
-      document.querySelectorAll('.class-checkbox').forEach(cb => cb.checked = master.checked);
-    }
-
-    function checkIndividualClass() {
-      const checkboxes = document.querySelectorAll('.class-checkbox');
-      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-      document.getElementById('class-checkbox-all').checked = allChecked;
-    }
-
-    function toggleAllEditClasses(master) {
-      document.querySelectorAll('.edit-class-checkbox').forEach(cb => cb.checked = master.checked);
-    }
-
-    function checkIndividualEditClass() {
-      const checkboxes = document.querySelectorAll('.edit-class-checkbox');
-      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-      document.getElementById('edit-class-checkbox-all').checked = allChecked;
-    }
-
-    // Admin Navigation
-    function switchAdminTab(tabName) {
-      ['assignments', 'students', 'submissions', 'settings'].forEach(t => {
-        document.getElementById(`admin-tab-${t}`).classList.add("hidden");
-        const btn = document.getElementById(`tab-btn-${t}`);
-        if (btn) {
-          btn.classList.remove("text-indigo-600", "border-b-2", "border-indigo-600");
-          btn.classList.add("text-slate-500");
-        }
-      });
-
-      document.getElementById(`admin-tab-${tabName}`).classList.remove("hidden");
-      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-      if (activeBtn) {
-        activeBtn.classList.add("text-indigo-600", "border-b-2", "border-indigo-600");
-        activeBtn.classList.remove("text-slate-500");
-      }
-
-      if (tabName === 'assignments') renderAdminAssignmentsTable();
-      if (tabName === 'students') renderStudentRosterTable();
-      if (tabName === 'submissions') renderSubmissionsTable();
-      if (tabName === 'settings') renderTermSelectors();
-    }
-
-    async function createAssignmentTemplate() {
-      const subject = document.getElementById("assign-subject").value.trim();
-      const grade = document.getElementById("assign-grade").value;
-      const deadline = document.getElementById("assign-deadline").value;
-      const title = document.getElementById("assign-title").value.trim();
-      const desc = document.getElementById("assign-desc").value.trim();
-      const linkUrl = document.getElementById("assign-link-input").value.trim();
-      const fileInput = document.getElementById("assign-file-input");
-
-      const selectedClasses = [];
-      if (document.getElementById("class-checkbox-all").checked) {
-        selectedClasses.push("all");
-      } else {
-        document.querySelectorAll('.class-checkbox:checked').forEach(cb => selectedClasses.push(cb.value));
-      }
-
-      if (!subject) { alert("과목명을 입력해 주세요."); return; }
-      if (!title) { alert("과제 제목을 입력해 주세요."); return; }
-      if (selectedClasses.length === 0) { alert("대상 학반을 최소 하나 이상 선택해 주세요."); return; }
-
-      const uploadedFiles = [];
-      if (fileInput.files.length > 0) {
-        for (let i = 0; i < fileInput.files.length; i++) {
-          const file = fileInput.files[i];
-          if (file.size > MAX_FILE_SIZE_BYTES) {
-            alert(`'${file.name}' 파일 크기가 10MB를 초과하여 등록할 수 없습니다.`);
-            return;
-          }
-          const fileData = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.readAsDataURL(file);
-          });
-          uploadedFiles.push({ fileName: file.name, fileData });
-        }
-      }
-
-      const assignId = "assign_" + Date.now();
-      const newAssignData = {
-        id: assignId,
-        term: currentTerm,
-        subject,
-        grade,
-        classes: selectedClasses,
-        title,
-        desc,
-        deadline,
-        files: uploadedFiles,
-        linkUrl,
-        order: assignments.length + 1,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-
-      try {
-        await setDoc(doc(db, "assignments", assignId), newAssignData);
-
-        document.getElementById("assign-subject").value = "";
-        document.getElementById("assign-deadline").value = "";
-        document.getElementById("assign-title").value = "";
-        document.getElementById("assign-desc").value = "";
-        document.getElementById("assign-link-input").value = "";
-        fileInput.value = "";
-        document.getElementById("class-checkbox-all").checked = false;
-        toggleAllClasses({ checked: false });
-
-        alert("과제가 성공적으로 등록되었습니다.");
-      } catch (err) {
-        console.error("Assignment creation error:", err);
-        alert("Firestore 저장 중 오류가 발생했습니다.");
-      }
-    }
-
-    function openEditAssignmentModal(id) {
-      const assign = assignments.find(a => a.id === id);
-      if (!assign) return;
-
-      document.getElementById("edit-assign-id").value = assign.id;
-      document.getElementById("edit-assign-subject").value = assign.subject || "";
-      document.getElementById("edit-assign-grade").value = assign.grade || "1";
-      document.getElementById("edit-assign-deadline").value = assign.deadline || "";
-      document.getElementById("edit-assign-title").value = assign.title || "";
-      document.getElementById("edit-assign-desc").value = assign.desc || "";
-      document.getElementById("edit-assign-link-input").value = assign.linkUrl || "";
-      document.getElementById("edit-assign-file-input").value = "";
-
-      tempEditFiles = assign.files ? [...assign.files] : [];
-      renderEditExistingFiles();
-
-      const isAll = assign.classes.includes("all");
-      document.getElementById("edit-class-checkbox-all").checked = isAll;
-
-      document.querySelectorAll('.edit-class-checkbox').forEach(cb => {
-        cb.checked = isAll || assign.classes.includes(cb.value);
-      });
-
-      document.getElementById("edit-assignment-modal").classList.remove("hidden");
-      document.getElementById("edit-assignment-modal").classList.add("flex");
-    }
-
-    function renderEditExistingFiles() {
-      const container = document.getElementById("edit-assign-existing-files-container");
-      if (!tempEditFiles || tempEditFiles.length === 0) {
-        container.innerHTML = `<div class="text-xs text-slate-400 italic">등록된 첨부 파일이 없습니다.</div>`;
-        return;
-      }
-
-      container.innerHTML = tempEditFiles.map((f, idx) => `
-        <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-lg border border-indigo-200 text-xs shadow-sm">
-          <span class="font-medium text-slate-700 truncate max-w-xs"><i class="fa-solid fa-file-lines text-amber-500 mr-1.5"></i>${f.fileName}</span>
-          <button type="button" data-file-index="${idx}" class="btn-remove-temp-file text-rose-500 hover:text-rose-700 bg-rose-50 px-2 py-0.5 rounded font-semibold transition shrink-0 ml-2">
-            <i class="fa-solid fa-xmark mr-1"></i>삭제
-          </button>
-        </div>
-      `).join('');
-
-      document.querySelectorAll('.btn-remove-temp-file').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(e.currentTarget.getAttribute('data-file-index'), 10);
-          tempEditFiles.splice(idx, 1);
-          renderEditExistingFiles();
-        });
-      });
-    }
-
-    function closeEditAssignmentModal() {
-      document.getElementById("edit-assignment-modal").classList.add("hidden");
-      document.getElementById("edit-assignment-modal").classList.remove("flex");
-    }
-
-    async function saveAssignmentChanges() {
-      const id = document.getElementById("edit-assign-id").value;
-      const assign = assignments.find(a => a.id === id);
-      if (!assign) return;
-
-      const subject = document.getElementById("edit-assign-subject").value.trim();
-      const grade = document.getElementById("edit-assign-grade").value;
-      const deadline = document.getElementById("edit-assign-deadline").value;
-      const title = document.getElementById("edit-assign-title").value.trim();
-      const desc = document.getElementById("edit-assign-desc").value.trim();
-      const linkUrl = document.getElementById("edit-assign-link-input").value.trim();
-      const fileInput = document.getElementById("edit-assign-file-input");
-
-      const selectedClasses = [];
-      if (document.getElementById("edit-class-checkbox-all").checked) {
-        selectedClasses.push("all");
-      } else {
-        document.querySelectorAll('.edit-class-checkbox:checked').forEach(cb => selectedClasses.push(cb.value));
-      }
-
-      if (!subject) { alert("과목명을 입력하세요."); return; }
-      if (!title) { alert("과제 제목을 입력하세요."); return; }
-      if (selectedClasses.length === 0) { alert("대상 학반을 최소 하나 이상 선택하세요."); return; }
-
-      if (fileInput.files.length > 0) {
-        for (let i = 0; i < fileInput.files.length; i++) {
-          const file = fileInput.files[i];
-          if (file.size > MAX_FILE_SIZE_BYTES) {
-            alert(`'${file.name}' 파일 크기가 10MB를 초과하여 저장할 수 없습니다.`);
-            return;
-          }
-          const fileData = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.readAsDataURL(file);
-          });
-          tempEditFiles.push({ fileName: file.name, fileData });
-        }
-      }
-
-      const updatedAssign = {
-        ...assign,
-        subject,
-        grade,
-        deadline,
-        classes: selectedClasses,
-        title,
-        desc,
-        linkUrl,
-        files: [...tempEditFiles]
-      };
-
-      try {
-        await setDoc(doc(db, "assignments", id), updatedAssign);
-        closeEditAssignmentModal();
-        alert("과제 정보가 성공적으로 수정되었습니다.");
-      } catch (err) {
-        console.error("Assignment update error:", err);
-        alert("Firestore 저장 중 오류가 발생했습니다.");
-      }
-    }
-
-    function renderAdminAssignmentsTable() {
-      const tbody = document.getElementById("admin-templates-table-body");
-      const filtered = assignments.filter(a => a.term === currentTerm);
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">현재 선택 학기(${currentTerm})에 등록된 과제가 없습니다.</td></tr>`;
-        return;
-      }
-
-      filtered.sort((a, b) => {
-        if (a.deadline && b.deadline) return new Date(a.deadline) - new Date(b.deadline);
-        if (a.deadline && !b.deadline) return -1;
-        if (!a.deadline && b.deadline) return 1;
-        return (a.order || 0) - (b.order || 0);
-      });
-
-      const noDeadlineItems = filtered.filter(a => !a.deadline);
-
-      tbody.innerHTML = filtered.map((a, idx) => {
-        const classText = a.classes.includes("all") ? "전체반" : a.classes.map(c => `${c}반`).join(", ");
-        const deadlineText = a.deadline ? new Date(a.deadline).toLocaleString('ko-KR') : `<span class="text-slate-400 font-normal">마감기한 없음</span>`;
-
-        const filesHTML = (a.files && a.files.length > 0)
-          ? a.files.map(f => `<span class="text-xs bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200"><i class="fa-solid fa-file-lines mr-1"></i>${f.fileName}</span>`).join(' ')
-          : '';
-
-        const isNoDeadline = !a.deadline;
-        let arrowControls = '';
-        if (isNoDeadline) {
-          const ndIndex = noDeadlineItems.findIndex(item => item.id === a.id);
-          const isFirst = ndIndex === 0;
-          const isLast = ndIndex === noDeadlineItems.length - 1;
-
-          arrowControls = `
-            <div class="inline-flex flex-col ml-1 space-y-0.5">
-              <button data-assign-id="${a.id}" data-dir="up" class="btn-move-order hover:bg-slate-200 text-slate-600 rounded px-1 py-0.2 text-[10px] ${isFirst ? 'opacity-30 cursor-not-allowed' : ''}" ${isFirst ? 'disabled' : ''} title="위로 이동">▲</button>
-              <button data-assign-id="${a.id}" data-dir="down" class="btn-move-order hover:bg-slate-200 text-slate-600 rounded px-1 py-0.2 text-[10px] ${isLast ? 'opacity-30 cursor-not-allowed' : ''}" ${isLast ? 'disabled' : ''} title="아래로 이동">▼</button>
-            </div>
-          `;
-        }
-
-        const draggableAttr = isNoDeadline ? 'draggable="true" class="draggable hover:bg-slate-50 transition"' : 'class="hover:bg-slate-50 transition"';
-        const dragHandle = isNoDeadline ? `<span class="text-slate-300 hover:text-slate-500 mr-1 cursor-grab" title="드래그하여 순서 변경"><i class="fa-solid fa-grip-vertical text-xs"></i></span>` : '';
-
-        return `
-          <tr data-assign-id="${a.id}" ${draggableAttr}>
-            <td class="p-4 text-center">
-              <input type="checkbox" value="${a.id}" class="template-checkbox rounded text-indigo-600">
-            </td>
-            <td class="p-4 text-xs font-semibold text-slate-500">
-              <div class="flex items-center">
-                ${dragHandle}
-                <span>#${idx + 1}</span>
-                ${arrowControls}
-              </div>
-            </td>
-            <td class="p-4"><span class="bg-indigo-50 text-indigo-700 font-bold text-xs px-2 py-1 rounded">${a.subject}</span></td>
-            <td class="p-4 text-xs font-medium">${a.grade}학년 (${classText})</td>
-            <td class="p-4">
-              <div class="font-semibold text-slate-900">${a.title}</div>
-              <div class="text-xs text-slate-400 mt-0.5">${a.desc || '지침 없음'}</div>
-              <div class="flex items-center space-x-2 mt-1 flex-wrap gap-1">
-                ${filesHTML}
-                ${a.linkUrl ? `<a href="${a.linkUrl}" target="_blank" class="text-xs text-sky-600 hover:underline"><i class="fa-solid fa-link mr-1"></i>링크</a>` : ''}
-              </div>
-            </td>
-            <td class="p-4 text-xs font-medium text-rose-600">${deadlineText}</td>
-            <td class="p-4 text-center">
-              <div class="flex items-center justify-center space-x-1">
-                <button data-assign-id="${a.id}" class="btn-edit-assign text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded font-semibold transition flex items-center">
-                  <i class="fa-solid fa-pen mr-1"></i>수정
-                </button>
-                <button data-assign-id="${a.id}" class="btn-delete-single-assign text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1 rounded transition">
-                  삭제
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.btn-edit-assign').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.getAttribute('data-assign-id');
-          openEditAssignmentModal(id);
-        });
-      });
-
-      document.querySelectorAll('.btn-delete-single-assign').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.getAttribute('data-assign-id');
-          deleteSingleTemplate(id);
-        });
-      });
-
-      document.querySelectorAll('.btn-move-order').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const id = e.currentTarget.getAttribute('data-assign-id');
-          const dir = e.currentTarget.getAttribute('data-dir');
-          moveAssignmentOrder(id, dir);
-        });
-      });
-
-      const draggables = tbody.querySelectorAll('tr.draggable');
-      draggables.forEach(draggable => {
-        draggable.addEventListener('dragstart', (e) => {
-          draggedRow = draggable;
-          draggable.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-        });
-
-        draggable.addEventListener('dragend', () => {
-          if (draggedRow) draggedRow.classList.remove('dragging');
-          draggedRow = null;
-          updateOrdersFromTableRows();
-        });
-      });
-
-      tbody.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const afterElement = getDragAfterElement(tbody, e.clientY);
-        if (draggedRow) {
-          if (afterElement == null) {
-            tbody.appendChild(draggedRow);
-          } else {
-            tbody.insertBefore(draggedRow, afterElement);
-          }
-        }
-      });
-    }
-
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('tr.draggable:not(.dragging)')];
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    async function updateOrdersFromTableRows() {
-      const tbody = document.getElementById("admin-templates-table-body");
-      const rows = [...tbody.querySelectorAll('tr')];
-      
-      const batch = writeBatch(db);
-      rows.forEach((row, index) => {
-        const id = row.getAttribute('data-assign-id');
-        if (id) {
-          batch.update(doc(db, "assignments", id), { order: index + 1 });
-        }
-      });
-
-      await batch.commit();
-    }
-
-    async function moveAssignmentOrder(id, direction) {
-      const noDeadlineAssignments = assignments
-        .filter(a => a.term === currentTerm && !a.deadline)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-      const index = noDeadlineAssignments.findIndex(a => a.id === id);
-      if (index === -1) return;
-
-      const batch = writeBatch(db);
-
-      if (direction === 'up' && index > 0) {
-        const currentItem = noDeadlineAssignments[index];
-        const prevItem = noDeadlineAssignments[index - 1];
-
-        batch.update(doc(db, "assignments", currentItem.id), { order: prevItem.order });
-        batch.update(doc(db, "assignments", prevItem.id), { order: currentItem.order });
-        await batch.commit();
-      } else if (direction === 'down' && index < noDeadlineAssignments.length - 1) {
-        const currentItem = noDeadlineAssignments[index];
-        const nextItem = noDeadlineAssignments[index + 1];
-
-        batch.update(doc(db, "assignments", currentItem.id), { order: nextItem.order });
-        batch.update(doc(db, "assignments", nextItem.id), { order: currentItem.order });
-        await batch.commit();
-      }
-    }
-
-    async function deleteSelectedTemplates() {
-      const checked = Array.from(document.querySelectorAll('.template-checkbox:checked')).map(cb => cb.value);
-      if (checked.length === 0) { alert("삭제할 과제를 선택하세요."); return; }
-      if (!confirm(`선택한 ${checked.length}개의 과제를 삭제하시겠습니까?`)) return;
-
-      const batch = writeBatch(db);
-      checked.forEach(id => {
-        batch.delete(doc(db, "assignments", id));
-      });
-      await batch.commit();
-    }
-
-    async function deleteSingleTemplate(id) {
-      if (!confirm("이 과제를 삭제하시겠습니까?")) return;
-      await deleteDoc(doc(db, "assignments", id));
-    }
-
-    async function syncRosterFromPreviousTerm() {
-      const otherTerms = terms.filter(t => t !== currentTerm);
-      if (otherTerms.length === 0) {
-        alert("이전에 등록된 다른 학기 데이터가 없습니다.");
-        return;
-      }
-
-      const sourceTerm = otherTerms[otherTerms.length - 1];
-      const prevStudents = students.filter(s => s.term === sourceTerm || (!s.term && sourceTerm === terms[0]));
-
-      if (prevStudents.length === 0) {
-        alert(`이전 학기(${sourceTerm})에 등록된 학생 명단이 없습니다.`);
-        return;
-      }
-
-      if (!confirm(`이전 학기(${sourceTerm})의 학생 명단(${prevStudents.length}명)을 현재 학기(${currentTerm})로 가져오시겠습니까?\n\n※ 동일한 학번이 이미 존재하는 경우 기존 정보가 업데이트됩니다.`)) {
-        return;
-      }
-
-      const batch = writeBatch(db);
-      let addedCount = 0;
-      prevStudents.forEach(prevS => {
-        const studentId = prevS.studentId || prevS.id;
-        const docId = `${currentTerm}_${studentId}`;
-        const newStudentObj = {
-          ...prevS,
-          id: docId,
-          studentId: studentId,
-          term: currentTerm
-        };
-        batch.set(doc(db, "students", docId), newStudentObj);
-        addedCount++;
-      });
-
-      await batch.commit();
-      alert(`${addedCount}명의 학생 명단이 성공적으로 ${currentTerm}에 동기화되었습니다.`);
-    }
-
-    async function importExcelRoster() {
-      const text = document.getElementById("excel-paste-input").value.trim();
-      if (!text) { alert("명단 데이터를 입력하세요."); return; }
-
-      const lines = text.split("\n");
-      let addedCount = 0;
-      const batch = writeBatch(db);
-
-      for (const line of lines) {
-        const parts = line.split("\t").map(p => p.trim());
-        if (parts.length >= 4) {
-          const grade = parseInt(parts[0], 10);
-          const classNum = parseInt(parts[1], 10);
-          const num = parseInt(parts[2], 10);
-          const name = parts[3];
-
-          if (grade && classNum && num && name) {
-            const studentId = `${grade}${classNum.toString().padStart(2, '0')}${num.toString().padStart(2, '0')}`;
-            const docId = `${currentTerm}_${studentId}`;
-            const studentObj = { id: docId, studentId, grade, classNum, num, name, term: currentTerm };
-
-            batch.set(doc(db, "students", docId), studentObj);
-            addedCount++;
-          }
-        }
-      }
-
-      await batch.commit();
-      document.getElementById("excel-paste-input").value = "";
-      alert(`${addedCount}명의 학생 명단이 등록되었습니다.`);
-    }
-
-    function renderStudentRosterTable() {
-      const gradeFilter = document.getElementById("roster-filter-grade").value;
-      const classFilter = document.getElementById("roster-filter-class").value;
-
-      const filtered = students.filter(s => {
-        const matchesTerm = (s.term === currentTerm || (!s.term && currentTerm === terms[0]));
-        const matchesGrade = gradeFilter === 'all' || s.grade.toString() === gradeFilter;
-        const matchesClass = classFilter === 'all' || s.classNum.toString() === classFilter;
-        return matchesTerm && matchesGrade && matchesClass;
-      });
-
-      // 학년/반/번호 순 정렬
-      filtered.sort((a, b) => {
-        const gA = Number(a.grade) || 0, gB = Number(b.grade) || 0;
-        if (gA !== gB) return gA - gB;
-        const cA = Number(a.classNum) || 0, cB = Number(b.classNum) || 0;
-        if (cA !== cB) return cA - cB;
-        const nA = Number(a.num) || 0, nB = Number(b.num) || 0;
-        if (nA !== nB) return nA - nB;
-        return (a.studentId || "").localeCompare(b.studentId || "");
-      });
-
-      document.getElementById("student-count-badge").innerText = filtered.length;
-      const tbody = document.getElementById("admin-roster-table-body");
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">등록된 학생 데이터가 없습니다.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(s => {
-        const sId = s.studentId || s.id;
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-mono font-bold text-xs text-indigo-600">${sId}</td>
-            <td class="p-3 text-xs">${s.grade}학년</td>
-            <td class="p-3 text-xs">${s.classNum}반</td>
-            <td class="p-3 text-xs">${s.num}번</td>
-            <td class="p-3 font-semibold text-slate-900">${s.name}</td>
-            <td class="p-3 text-center">
-              <button data-student-id="${s.id}" class="btn-delete-student text-xs text-rose-500 hover:text-rose-700">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.btn-delete-student').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.getAttribute('data-student-id');
-          deleteStudent(id);
-        });
-      });
-    }
-
-    async function deleteStudent(id) {
-      if (!confirm(`해당 학생을 삭제하시겠습니까?`)) return;
-      try {
-        await deleteDoc(doc(db, "students", id));
-      } catch (err) {
-        console.error("Delete student error:", err);
-        alert("학생 삭제 중 오류가 발생했습니다.");
-      }
-    }
-
-    function renderSubmissionsTable() {
-      const assignSelect = document.getElementById("submission-filter-assignment");
-      const currentSelectedAssign = assignSelect.value || "all";
-      const filteredAssignments = assignments.filter(a => a.term === currentTerm);
-
-      assignSelect.innerHTML = `<option value="all">전체 과제 보기</option>` + 
-        filteredAssignments.map(a => `<option value="${a.id}" ${a.id === currentSelectedAssign ? 'selected' : ''}>[${a.subject}] ${a.title}</option>`).join('');
-
-      const selectedAssignId = assignSelect.value;
-      const filteredSubmissions = submissions.filter(s => {
-        const matchesTerm = (s.term === currentTerm);
-        const matchesAssign = selectedAssignId === 'all' || s.assignmentId === selectedAssignId;
-        return matchesTerm && matchesAssign;
-      });
-
-      // 정렬 처리 (학년/반/번호 순, 제출일시 순, 이름 순)
-      const sortOption = document.getElementById("submission-sort-order")?.value || "student_asc";
-
-      filteredSubmissions.sort((a, b) => {
-        if (sortOption === "student_asc") {
-          const gA = Number(a.grade) || 0, gB = Number(b.grade) || 0;
-          if (gA !== gB) return gA - gB;
-          const cA = Number(a.classNum) || 0, cB = Number(b.classNum) || 0;
-          if (cA !== cB) return cA - cB;
-          const nA = Number(a.num) || 0, nB = Number(b.num) || 0;
-          if (nA !== nB) return nA - nB;
-          return (a.studentId || "").localeCompare(b.studentId || "");
-        } else if (sortOption === "date_desc") {
-          return new Date(b.submittedAt) - new Date(a.submittedAt);
-        } else if (sortOption === "date_asc") {
-          return new Date(a.submittedAt) - new Date(b.submittedAt);
-        } else if (sortOption === "name_asc") {
-          return (a.studentName || "").localeCompare(b.studentName || "");
-        }
-        return 0;
-      });
-
-      const tbody = document.getElementById("admin-submissions-table-body");
-      if (filteredSubmissions.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">제출된 과제가 없습니다.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filteredSubmissions.map(s => `
-        <tr class="hover:bg-slate-50/50 transition">
-          <td class="p-4">
-            <div class="font-bold text-slate-900">${s.studentName}</div>
-            <div class="text-xs text-slate-400 font-mono">${s.studentId || ''} (${s.grade || ''}-${s.classNum || ''}-${s.num || ''})</div>
-          </td>
-          <td class="p-4">
-            <div class="font-semibold text-xs text-slate-800">${s.assignmentTitle}</div>
-            <div class="text-xs text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-tag mr-1"></i>${s.subTitle || '제출물'}</div>
-          </td>
-          <td class="p-4 text-xs">
-            <div class="text-slate-600 font-mono">${s.submittedAt}</div>
-            ${s.isLate ? `<span class="inline-block mt-1 bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded text-[11px]">지각 제출</span>` : `<span class="inline-block mt-1 bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded text-[11px]">정상 제출</span>`}
-          </td>
-          <td class="p-4">
-            <div class="max-w-xs text-xs text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-              ${s.content || '내용 없음'}
-            </div>
-            <div class="mt-1.5 space-y-1">
-              ${s.fileData ? `<a href="${s.fileData}" download="${s.fileName}" class="inline-block text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded hover:bg-amber-100"><i class="fa-solid fa-file-arrow-down mr-1"></i>${s.fileName}</a>` : ''}
-              ${s.webUrl ? `<div><a href="${s.webUrl}" target="_blank" class="text-xs text-sky-600 hover:underline"><i class="fa-solid fa-link mr-1"></i>${s.webUrl}</a></div>` : ''}
-            </div>
-          </td>
-          <td class="p-4">
-            <div class="sticky-note p-3 rounded-lg text-xs text-slate-800 leading-relaxed font-sans max-w-xs shadow">
-              <div class="font-bold text-amber-900 mb-1 flex items-center">
-                <i class="fa-solid fa-sticky-note mr-1.5 text-amber-600"></i> AI Teacher Note
-              </div>
-              <p class="whitespace-pre-line">${s.feedback || '피드백 없음'}</p>
-            </div>
-          </td>
-          <td class="p-4 text-center">
-            <button data-sub-id="${s.id}" class="btn-delete-admin-sub text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1 rounded border border-rose-200 transition">
-              삭제
-            </button>
-          </td>
-        </tr>
-      `).join('');
-
-      document.querySelectorAll('.btn-delete-admin-sub').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.getAttribute('data-sub-id');
-          deleteSubmission(id);
-        });
-      });
-    }
-
-    async function deleteSubmission(id) {
-      if (!confirm("이 제출물을 삭제하시겠습니까?")) return;
-      await deleteDoc(doc(db, "submissions", id));
-    }
-
-    async function executeSelectedReset() {
-      const rAssignments = document.getElementById("reset-target-assignments").checked;
-      const rRoster = document.getElementById("reset-target-roster").checked;
-      const rSubmissions = document.getElementById("reset-target-submissions").checked;
-
-      if (!rAssignments && !rRoster && !rSubmissions) {
-        alert("초기화할 항목을 최소 하나 이상 선택해주세요.");
-        return;
-      }
-
-      if (!confirm("선택한 항목의 데이터를 초기화하시겠습니까?")) return;
-
-      try {
-        if (rAssignments) {
-          const snap = await getDocs(collection(db, "assignments"));
-          const batch = writeBatch(db);
-          snap.forEach(d => batch.delete(d.ref));
-          await batch.commit();
-        }
-        if (rRoster) {
-          localStorage.setItem("students_init_done", "true");
-          const snap = await getDocs(collection(db, "students"));
-          const batch = writeBatch(db);
-          snap.forEach(d => batch.delete(d.ref));
-          await batch.commit();
-        }
-        if (rSubmissions) {
-          const snap = await getDocs(collection(db, "submissions"));
-          const batch = writeBatch(db);
-          snap.forEach(d => batch.delete(d.ref));
-          await batch.commit();
-        }
-
-        document.getElementById("reset-target-assignments").checked = false;
-        document.getElementById("reset-target-roster").checked = false;
-        document.getElementById("reset-target-submissions").checked = false;
-
-        alert("선택한 데이터의 초기화가 완료되었습니다.");
-      } catch (err) {
-        console.error("Reset error:", err);
-        alert("데이터 초기화 중 오류가 발생했습니다.");
-      }
-    }
-
-    // Attach Event Listeners on DOM Content Loaded
-    window.addEventListener("DOMContentLoaded", () => {
-      generateClassCheckboxes();
-
-      document.getElementById("btn-login").addEventListener("click", login);
-      document.getElementById("login-input").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") login();
-      });
-
-      document.getElementById("btn-logout").addEventListener("click", logout);
-
-      document.getElementById("global-term-select").addEventListener("change", (e) => {
-        changeGlobalTerm(e.target.value);
-      });
-
-      document.getElementById("tab-btn-assignments").addEventListener("click", () => switchAdminTab("assignments"));
-      document.getElementById("tab-btn-students").addEventListener("click", () => switchAdminTab("students"));
-      document.getElementById("tab-btn-submissions").addEventListener("click", () => switchAdminTab("submissions"));
-      document.getElementById("tab-btn-settings").addEventListener("click", () => switchAdminTab("settings"));
-
-      document.getElementById("class-checkbox-all").addEventListener("change", (e) => toggleAllClasses(e.target));
-      document.getElementById("edit-class-checkbox-all").addEventListener("change", (e) => toggleAllEditClasses(e.target));
-
-      document.getElementById("btn-clear-deadline").addEventListener("click", () => {
-        document.getElementById("assign-deadline").value = "";
-      });
-      document.getElementById("btn-clear-edit-deadline").addEventListener("click", () => {
-        document.getElementById("edit-assign-deadline").value = "";
-      });
-
-      document.getElementById("btn-create-assignment").addEventListener("click", createAssignmentTemplate);
-
-      document.getElementById("select-all-templates").addEventListener("click", (e) => {
-        document.querySelectorAll('.template-checkbox').forEach(cb => cb.checked = e.target.checked);
-      });
-      document.getElementById("btn-delete-selected-templates").addEventListener("click", deleteSelectedTemplates);
-
-      document.getElementById("btn-import-roster").addEventListener("click", importExcelRoster);
-      document.getElementById("btn-sync-roster-from-prev").addEventListener("click", syncRosterFromPreviousTerm);
-      document.getElementById("roster-filter-grade").addEventListener("change", renderStudentRosterTable);
-      document.getElementById("roster-filter-class").addEventListener("change", renderStudentRosterTable);
-
-      document.getElementById("submission-filter-assignment").addEventListener("change", renderSubmissionsTable);
-      document.getElementById("submission-sort-order").addEventListener("change", renderSubmissionsTable);
-
-      document.getElementById("btn-add-term").addEventListener("click", addNewTerm);
-      document.getElementById("btn-execute-reset").addEventListener("click", executeSelectedReset);
-
-      document.getElementById("btn-close-edit-modal-x").addEventListener("click", closeEditAssignmentModal);
-      document.getElementById("btn-close-edit-modal").addEventListener("click", closeEditAssignmentModal);
-      document.getElementById("btn-save-edit-assignment").addEventListener("click", saveAssignmentChanges);
-
-      document.getElementById("btn-close-submit-modal-x").addEventListener("click", closeSubmitModal);
-      document.getElementById("btn-close-submit-modal").addEventListener("click", closeSubmitModal);
-      document.getElementById("btn-process-submit").addEventListener("click", processStudentSubmission);
-
-      // Initialize Realtime Sync with Firestore
-      setupFirestoreListeners();
-    });
-  </script>
+<body>
+<aside id="side"></aside><main id="main"></main><div id="modal"></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {getFirestore,collection,doc,setDoc,deleteDoc,getDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 기존 과제 제출 웹앱과 같은 Firebase 프로젝트 (students / assignments / submissions 그대로 연동)
+const db=getFirestore(initializeApp({apiKey:"AIzaSyBdyDgmPFg-Py1ej87klSWqXB8TC5yixkU",authDomain:"assignment-submission-hs.firebaseapp.com",projectId:"assignment-submission-hs",storageBucket:"assignment-submission-hs.firebasestorage.app",messagingSenderId:"702547388370",appId:"1:702547388370:web:f47dc11400725b67324a0b"}));
+const COLS=["students","assignments","submissions","notices","assessments","board","counsel","schedule","meals"];
+const S={user:null,page:"home",ym:new Date().toISOString().slice(0,7),mealDate:new Date().toISOString().slice(0,10),sf:{a:"",g:"",c:"",sort:"sid"},asort:(()=>{try{return localStorage.getItem("asort")||"dl"}catch(e){return "dl"}})()};COLS.forEach(c=>S[c]=[]);
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)},T=()=>S.user?.role==="teacher",st=()=>S.user?.data;
+const put=(c,o)=>setDoc(doc(db,c,o.id),o,{merge:true});
+const del=async(c,id)=>{if(!confirm("삭제할까요?"))return;await deleteDoc(doc(db,c,id));closeModal()};
+const uid=p=>p+Date.now()+Math.random().toString(36).slice(2,5);
+const dday=d=>{const n=Math.round((new Date(d)-new Date(today()))/864e5);return n===0?"D-Day":n>0?"D-"+n:"D+"+-n};
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,"0")).join("");
+const modal=(h,sm)=>{$("#modal").innerHTML=`<div class="mb" data-close="1"><div class="md ${sm?"sm":""}"><button class="x" data-close="1">×</button>${h}</div></div>`;setTimeout(()=>$("#modal input:not([type=file]),#modal textarea")?.focus(),30)};
+const closeModal=()=>$("#modal").innerHTML="";
+// 대상(학년/반/학생) 필터: 0 또는 공란 = 전체
+const mine=o=>T()||((!o.grade||o.grade==st().grade)&&(!o.classNum||o.classNum==st().classNum)&&(!o.studentId||o.studentId===st().studentId));
+const tgt=o=>(o.studentId?`${o.studentId} 개인`:o.grade?`${o.grade}학년${o.classNum?" "+o.classNum+"반":""}`:"전체");
+const tgtFields=()=>`<div class="flex"><div><label>학년</label><input id="f-grade" type="number" min="0" max="3" placeholder="전체: 0"></div><div><label>반</label><input id="f-class" type="number" min="0" placeholder="전체: 0"></div><div><label>학번(선택)</label><input id="f-sid" placeholder="예: 10101"></div></div>`;
+const tgtVals=()=>({grade:+$("#f-grade").value||0,classNum:+$("#f-class").value||0,studentId:$("#f-sid").value.trim()});
+// 과제 정렬: 기본은 마감 임박순(마감 없는 '상시' 과제는 맨 뒤)
+const dlKey=a=>a.deadline||"9999";
+const ASORT={dl:["마감 임박순",(a,b)=>dlKey(a).localeCompare(dlKey(b))],dlr:["마감 늦은순",(a,b)=>dlKey(b).localeCompare(dlKey(a))],title:["제목 가나다순",(a,b)=>a.title.localeCompare(b.title,"ko")],titler:["제목 역순",(a,b)=>b.title.localeCompare(a.title,"ko")],new:["최근 등록순",(a,b)=>String(b.id).localeCompare(String(a.id))],old:["등록순",(a,b)=>String(a.id).localeCompare(String(b.id))]};
+const myAssigns=()=>S.assignments.filter(a=>T()||(a.grade==st().grade&&(!a.classes?.length||a.classes.map(Number).includes(+st().classNum)))).sort((a,b)=>(ASORT[S.asort]||ASORT.dl)[1](a,b)||a.title.localeCompare(b.title,"ko"));
+const asortSel=()=>`<select data-asort="1" style="width:auto;padding:4px 8px;font-size:13px">${Object.entries(ASORT).map(([k,[t]])=>`<option value="${k}" ${S.asort===k?"selected":""}>${t}</option>`).join("")}</select>`;
+const sidKey=s=>(+s.grade||0)*1e4+(+s.classNum||0)*100+(+s.num||0);
+const fmtDl=d=>d?esc(d.replace("T"," "))+" 마감":"상시";
+const RESET=[["schedule","학사일정"],["meals","급식"],["students","학생 명단"],["notices","공지사항"],["assessments","수행평가"],["assignments","과제"],["submissions","제출물"],["board","방명록"],["counsel","상담 신청"]];
+const NAV=[["home","🏠 홈"],["notice","📢 공지사항"],["assess","📝 수행평가"],["assign","📥 과제 제출"],["board","💬 방명록"],["counsel","🤝 상담 신청"]];
+function side(){$("#side").innerHTML=`<h1>신현준T</h1><small>교과 통합관리</small>`+(S.user?NAV.concat(T()?[["admin","⚙️ 관리"]]:[["settings","🔒 설정"]]).map(([k,v])=>`<button class="nav ${S.page===k?"on":""}" data-go="${k}">${v}</button>`).join("")+`<div class="who"><b>${T()?"교사":esc(st().name)}</b><br><span style="color:#a9c7ba">${T()?"관리자 모드":`${st().grade}학년 ${st().classNum}반 ${st().num}번`}</span><br><button class="btn s o" style="margin-top:8px" data-act="logout">로그아웃</button></div>`:"")}
+function render(){side();const m=$("#main");if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button></div>`;setTimeout(()=>$("#login-id")?.focus(),30);return}
+m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()}
+
+// ───── 홈
+function monthCal(){const[y,mo]=S.ym.split("-").map(Number),first=new Date(y,mo-1,1).getDay(),n=new Date(y,mo,0).getDate();let h=["일","월","화","수","목","금","토"].map(d=>`<div class="h">${d}</div>`).join("")+"<div></div>".repeat(first);
+for(let d=1;d<=n;d++){const ds=`${S.ym}-${String(d).padStart(2,"0")}`;h+=`<div class="${ds===today()?"t":""}"><b>${d}</b>${S.schedule.filter(e=>e.date===ds).map(e=>`<i title="${esc(e.name)}">${esc(e.name)}</i>`).join("")}${S.assessments.filter(mine).filter(a=>a.date===ds).map(a=>`<i class="as" data-assess="${a.id}" title="수행평가: ${esc(a.title)}">📝 ${esc(a.title)}</i>`).join("")}${myAssigns().filter(a=>a.deadline?.slice(0,10)===ds).map(a=>`<i class="dl" data-open="${a.id}" title="과제 마감: ${esc(a.title)}">📥 ${esc(a.title)}</i>`).join("")}</div>`}return h}
+function home(){const meal=S.meals.filter(x=>x.date===S.mealDate).sort((a,b)=>"조중석".indexOf((a.type||"중")[0])-"조중석".indexOf((b.type||"중")[0])),nt=S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,5),as=S.assessments.filter(mine).filter(a=>a.date>=today()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+const due=myAssigns().filter(a=>!a.deadline||a.deadline.slice(0,10)>=today()).slice(0,5);
+return `<h2>안녕하세요${T()?", 선생님":", "+esc(st().name)+" 학생"} 👋</h2><p class="sub">${today()} · 오늘의 학교 소식</p><div class="grid">
+<div class="card span2"><h3>📅 학사일정 <span class="flex"><button class="btn s o" data-ym="-1">◀</button><b>${S.ym}</b><button class="btn s o" data-ym="1">▶</button></span></h3><div class="cal">${monthCal()}</div><div class="legend"><span style="--c:#dfe9f7">학사일정</span><span style="--c:#fbe1da">수행평가</span><span style="--c:#fdf0cd">과제 마감</span></div></div>
+<div class="card"><h3>🍚 급식 <input type="date" id="mealDate" value="${S.mealDate}" style="width:auto;padding:3px 8px"></h3><div class="meal">${meal.length?meal.map(x=>`<span class="tag y">${esc(x.type||"중식")}</span>\n${esc(x.menu)}`).join("\n\n"):'<span class="mute">등록된 급식 정보가 없습니다.</span>'}</div></div>
+<div class="card"><h3>📢 공지사항 <button class="btn s o" data-go="notice">전체</button></h3>${nt.map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <button class="link" data-notice="${n.id}">${esc(n.title)}</button><div class="mute">${n.createdAt.slice(0,10)}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
+<div class="card"><h3>📝 수행평가 안내 <button class="btn s o" data-go="assess">전체</button></h3>${as.map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <button class="link" data-assess="${a.id}">${esc(a.title)}</button><div class="mute">${esc(a.subject)} · ${a.date}</div></div>`).join("")||'<span class="mute">예정된 수행평가가 없습니다.</span>'}</div>
+<div class="card"><h3>📥 과제 <span class="flex">${asortSel()}<button class="btn s o" data-go="assign">전체</button></span></h3>${due.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag y">${a.deadline?dday(a.deadline.slice(0,10)):"상시"}</span><div class="mute">${esc(a.subject||"")}</div></div>`).join("")||'<span class="mute">진행 중인 과제가 없습니다.</span>'}</div></div>`}
+
+// ───── 공지 / 수행평가
+function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.</p><div class="${T()?"g2":""}"><div class="card">${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <b>${esc(n.title)}</b> ${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}<div style="white-space:pre-line">${esc(n.body)}</div><div class="mute">${n.createdAt.slice(0,10)}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
+${T()?`<div class="card"><h3>새 공지 작성</h3><label>제목</label><input id="n-title"><label>내용</label><textarea id="n-body"></textarea>${tgtFields()}<br><button class="btn" data-act="addNotice">등록</button></div>`:""}</div>`}
+function assess(){return `<h2>수행평가 안내</h2><p class="sub">일정과 평가 기준을 확인하세요.</p><div class="${T()?"g2":""}"><div class="card">${S.assessments.filter(mine).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <b>${esc(a.title)}</b> <span class="tag b">${esc(a.subject)}</span> <span class="tag">${tgt(a)}</span> ${T()?`<button class="btn s d" data-del="assessments:${a.id}">삭제</button>`:""}<div class="mute">${a.date}</div><div style="white-space:pre-line">${esc(a.desc)}</div></div>`).join("")||'<span class="mute">등록된 수행평가가 없습니다.</span>'}</div>
+${T()?`<div class="card"><h3>수행평가 등록</h3><label>과목</label><input id="a-subj"><label>제목</label><input id="a-title"><label>평가 기준·유의사항</label><textarea id="a-desc"></textarea>${tgtFields()}<label>실시일</label><input id="a-date" type="date"><br><br><button class="btn" data-act="addAssess">등록</button></div>`:""}</div>`}
+
+// ───── 과제 제출
+function assign(){const as=myAssigns(),cnt=id=>new Set(S.submissions.filter(s=>s.assignmentId===id).map(s=>s.studentId)).size;
+const list=`<div class="card"><h3>과제 목록 <span class="flex"><span class="mute">제목을 누르면 ${T()?"수정":"상세 보기·제출"}</span>${asortSel()}</span></h3>${as.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag b">${esc(a.subject||"")}</span> <span class="tag y">${fmtDl(a.deadline)}</span> ${T()?`<span class="tag">${a.grade}학년 ${a.classes?.length?a.classes.join(",")+"반":"전체"}</span> <span class="mute">제출 ${cnt(a.id)}명</span>`:S.submissions.some(s=>s.assignmentId===a.id&&s.studentId===st().studentId)?'<span class="tag">제출 완료</span>':'<span class="tag r">미제출</span>'}</div>`).join("")||'<span class="mute">과제가 없습니다.</span>'}</div>`;
+if(!T())return `<h2>과제 제출</h2><p class="sub">과제 제목을 눌러 상세 내용을 보고 제출하세요. 마감 후 제출은 '지각'으로 표시됩니다.</p>${list}`;
+return `<h2>과제 제출</h2><p class="sub">과제를 만들고 제출물을 확인합니다.</p><div class="g2">${list}
+<div class="card"><h3>과제 만들기</h3>${assignFields({grade:1})}<br><button class="btn" data-act="addAssign">등록</button></div>
+<div class="card full">${subTable()}</div></div>`}
+const assignFields=a=>`<label>과목</label><input id="s-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="s-title" value="${esc(a.title||"")}"><label>안내</label><textarea id="s-desc" style="min-height:140px">${esc(a.desc||"")}</textarea><div class="flex"><div><label>학년</label><input id="s-grade" type="number" min="1" max="3" value="${a.grade||1}"></div><div><label>반</label><input id="s-classes" placeholder="1, 2, 3 / 전체: 공란" value="${esc((a.classes||[]).join(", "))}"></div></div><label>마감</label><input id="s-dl" type="datetime-local" value="${esc(a.deadline||"")}"><label>참고 링크</label><input id="s-link" value="${esc(a.linkUrl||"")}">`;
+const assignVals=()=>({subject:$("#s-subj").value.trim(),title:$("#s-title").value.trim(),desc:$("#s-desc").value,grade:+$("#s-grade").value||1,classes:$("#s-classes").value.split(/[,\s]+/).map(Number).filter(Boolean),deadline:$("#s-dl").value,linkUrl:$("#s-link").value.trim()});
+function subTable(){const f=S.sf,grades=[...new Set(S.submissions.map(s=>s.grade))].filter(Boolean).sort(),classes=[...new Set(S.submissions.filter(s=>!f.g||s.grade==f.g).map(s=>s.classNum))].filter(Boolean).sort((a,b)=>a-b);
+let l=S.submissions.filter(s=>(!f.a||s.assignmentId===f.a)&&(!f.g||s.grade==f.g)&&(!f.c||s.classNum==f.c));
+const srt={sid:(a,b)=>sidKey(a)-sidKey(b)||a.id.localeCompare(b.id),new:(a,b)=>b.id.localeCompare(a.id),old:(a,b)=>a.id.localeCompare(b.id),name:(a,b)=>a.studentName.localeCompare(b.studentName,"ko")};l.sort(srt[f.sort]);
+const opt=(v,t,cur)=>`<option value="${v}" ${String(cur)===String(v)?"selected":""}>${t}</option>`;
+return `<h3>제출물 (${l.length}건) <span class="flex" style="flex:0 1 760px">
+<select data-sf="a">${opt("","전체 과제",f.a)}${myAssigns().map(a=>opt(a.id,esc(a.title),f.a)).join("")}</select>
+<select data-sf="g">${opt("","전체 학년",f.g)}${grades.map(g=>opt(g,g+"학년",f.g)).join("")}</select>
+<select data-sf="c">${opt("","전체 반",f.c)}${classes.map(c=>opt(c,c+"반",f.c)).join("")}</select>
+<select data-sf="sort">${opt("sid","학년·반·번호순",f.sort)}${opt("name","이름순",f.sort)}${opt("new","최근 제출순",f.sort)}${opt("old","먼저 제출순",f.sort)}</select></span></h3>
+<table><tr><th>학번</th><th>이름</th><th>과제</th><th>제출물</th><th>제출 시각</th><th>상태</th><th>첨부</th><th></th></tr>${l.map(s=>`<tr><td>${esc(s.studentId)}</td><td><button class="link" data-view="${s.id}">${esc(s.studentName)}</button></td><td>${esc(s.assignmentTitle)}</td><td>${esc(s.subTitle)}</td><td class="mute">${esc(s.submittedAt)}</td><td>${s.isLate?'<span class="tag r">지각</span>':'<span class="tag">정상</span>'}</td><td>${s.fileData?`<a href="${s.fileData}" download="${esc(s.fileName)}">📎</a>`:""} ${s.webUrl?`<a href="${esc(s.webUrl)}" target="_blank">🔗</a>`:""}</td><td><button class="btn s d" data-del="submissions:${s.id}">삭제</button></td></tr>`).join("")||'<tr><td colspan="8" class="mute">제출물이 없습니다.</td></tr>'}</table>`}
+function openAssign(id){const a=S.assignments.find(x=>x.id===id);if(!a)return;
+if(T())return modal(`<h2>과제 수정</h2>${assignFields(a)}<br><br><div class="flex"><button class="btn" data-act="saveAssign" data-id="${id}">저장</button><button class="btn d" data-del="assignments:${id}">과제 삭제</button></div>`);
+const mineS=S.submissions.filter(s=>s.assignmentId===id&&s.studentId===st().studentId);
+modal(`<span class="tag b">${esc(a.subject||"")}</span> <span class="tag y">${fmtDl(a.deadline)}</span><h2 style="margin-top:6px">${esc(a.title)}</h2><div class="big" style="font-size:15px">${esc(a.desc||"안내 없음")}</div>
+${a.linkUrl?`<p><a href="${esc(a.linkUrl)}" target="_blank">🔗 참고 링크</a></p>`:""}${(a.files||[]).map(f=>`<p><a href="${f.fileData}" download="${esc(f.fileName)}">📎 ${esc(f.fileName)}</a></p>`).join("")}
+${mineS.length?`<h3 style="margin-top:20px">내 제출물</h3>${mineS.map(s=>`<div class="row">✔ ${esc(s.subTitle)} · ${esc(s.submittedAt)} ${s.isLate?'<span class="tag r">지각</span>':""} ${s.fileName?esc(s.fileName):""} <a href="#" data-del="submissions:${s.id}">삭제</a></div>`).join("")}`:""}
+<h3 style="margin-top:20px">제출하기</h3><label>제출물 이름</label><input id="u-sub" value="제출물"><p class="mute">내용·링크·첨부파일 중 하나 이상은 반드시 작성해야 제출됩니다.</p><label>내용</label><textarea id="u-body"></textarea><label>링크</label><input id="u-url" placeholder="https://"><label>첨부파일 (700KB 이하)</label><input id="u-file" type="file"><br><br><button class="btn" data-act="doSubmit" data-id="${id}">제출</button>`)}
+function viewSub(id){const s=S.submissions.find(x=>x.id===id);if(!s)return;
+modal(`<span class="tag">${esc(s.studentId)}</span> ${s.isLate?'<span class="tag r">지각 제출</span>':'<span class="tag">정상 제출</span>'}<h2 style="margin-top:6px">${esc(s.studentName)} <span class="mute" style="font-size:15px">${s.grade}학년 ${s.classNum}반 ${s.num}번</span></h2><p class="sub">${esc(s.assignmentTitle)} · ${esc(s.subTitle)} · ${esc(s.submittedAt)}</p>
+<div class="big">${esc(s.content||"작성한 내용이 없습니다.")}${s.fileData?.startsWith("data:image")?`<img src="${s.fileData}">`:""}</div>
+<div class="flex" style="margin-top:14px">${s.fileData?`<a class="btn o" href="${s.fileData}" download="${esc(s.fileName)}">📎 ${esc(s.fileName)} 내려받기</a>`:""}${s.webUrl?`<a class="btn o" href="${esc(s.webUrl)}" target="_blank">🔗 링크 열기</a>`:""}</div>`)}
+
+// ───── 방명록 / 상담 / 설정
+function board(){return `<h2>방명록</h2><p class="sub">자유롭게 남겨 주세요. 서로 존중하는 말을 써 주세요.</p><div class="card"><div class="flex"><input id="b-text" placeholder="한마디 남기기"><button class="btn" data-act="addBoard">남기기</button></div></div><div class="card" style="margin-top:16px">${[...S.board].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(b=>`<div class="row"><b>${esc(b.name)}</b> <span class="mute">${new Date(b.createdAt).toLocaleString("ko-KR")}</span> ${T()||b.studentId===st()?.studentId?`<a href="#" data-del="board:${b.id}">삭제</a>`:""}<div>${esc(b.text)}</div></div>`).join("")||'<span class="mute">첫 글을 남겨 보세요.</span>'}</div>`}
+function counsel(){const l=S.counsel.filter(c=>T()||c.studentId===st().studentId).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+return `<h2>상담 신청</h2><p class="sub">${T()?"신청 내용을 확인하고 답변을 남기세요.":"신청 내용은 선생님만 볼 수 있습니다."}</p><div class="${T()?"":"g2"}">${T()?"":`<div class="card"><h3>새 신청</h3><label>희망 날짜</label><input id="c-date" type="date"><label>분야</label><select id="c-type"><option>학업</option><option>진로</option><option>교우관계</option><option>기타</option></select><label>내용</label><textarea id="c-body"></textarea><br><button class="btn" data-act="addCounsel">신청</button></div>`}
+<div class="card"><h3>${T()?"신청 목록":"내 신청 내역"}</h3>${l.map(c=>`<div class="row"><span class="tag ${c.reply?"":"y"}">${c.reply?"답변 완료":"대기"}</span> <b>${T()?esc(c.name)+" ("+esc(c.studentId)+") · ":""}${esc(c.type)}</b> <span class="mute">희망 ${esc(c.date||"-")}</span><div>${esc(c.body)}</div>${c.reply?`<div class="mute">↳ 교사: ${esc(c.reply)}</div>`:""}${T()?`<div class="flex"><input id="r-${c.id}" placeholder="답변" value="${esc(c.reply||"")}"><button class="btn s" data-reply="${c.id}">저장</button></div>`:""}</div>`).join("")||'<span class="mute">내역이 없습니다.</span>'}</div></div>`}
+function settings(){return `<h2>설정</h2><p class="sub">처음 비밀번호는 없으며, 학번만으로 로그인됩니다. 비밀번호를 정하면 다음부터 학번과 비밀번호로 로그인합니다.</p><div class="card" style="max-width:520px"><h3>비밀번호 ${st().pw?"변경":"설정"}</h3><label>새 비밀번호 (4자 이상)</label><input id="sp1" type="password"><label>새 비밀번호 확인</label><input id="sp2" type="password"><br><br><button class="btn" data-act="stuPw">저장</button></div>`}
+
+// ───── 교사 관리
+function admin(){const c=JSON.parse(localStorage.getItem("neis")||"{}");
+return `<h2>관리</h2><p class="sub">NEIS 연동 · 파일 업로드 · 직접 입력 중 편한 방법을 사용하세요.</p><div class="g2">
+<div class="col"><div class="card"><h3>① NEIS 동기화 (학사일정·급식)</h3><p class="mute">NEIS 교육정보 개방포털(open.neis.go.kr)에서 인증키를 발급받고, 시도교육청코드/표준학교코드를 입력하세요. 이 설정은 이 브라우저에만 저장됩니다.</p><label>인증키</label><input id="k" value="${esc(c.k||"")}"><div class="flex"><div><label>시도교육청코드 (예: J10)</label><input id="o" value="${esc(c.o||"")}"></div><div><label>표준학교코드</label><input id="sc" value="${esc(c.sc||"")}"></div></div><br><button class="btn" data-act="neis">${S.ym} 학사일정 + 급식 가져오기</button> <span id="neis-msg" class="mute"></span></div>
+<div class="card"><h3>② 파일 업로드 (CSV)</h3><label>학사일정 CSV — 날짜,행사명 (예: 2026-11-12,수능)</label><input type="file" accept=".csv,.txt" data-csv="schedule"><label>급식 CSV — 날짜,구분,메뉴(/로 구분)</label><input type="file" accept=".csv,.txt" data-csv="meals"><label>학생 명단 CSV — 학번,이름 (학번 5자리: 학년+반2자리+번호2자리)</label><input type="file" accept=".csv,.txt" data-csv="students"></div>
+<div class="card"><h3>③ 직접 입력</h3><label>학사일정</label><div class="flex"><input id="m-date" type="date" value="${today()}" style="flex:0 0 180px"><input id="m-name" placeholder="행사명"><button class="btn" data-act="addSched">일정 추가</button></div><label>급식</label><div class="flex"><input id="g-date" type="date" value="${today()}"><select id="g-type" style="flex:0 0 100px"><option>조식</option><option selected>중식</option><option>석식</option></select></div><textarea id="g-menu" placeholder="메뉴 (줄바꿈으로 구분)" style="margin-top:8px"></textarea><br><br><button class="btn" data-act="addMeal">급식 저장</button></div>
+</div><div class="col"><div class="card"><h3>학생 명단 (${S.students.length}명)</h3><div class="flex"><input id="st-id" placeholder="학번 10101"><input id="st-name" placeholder="이름"><button class="btn" data-act="addStudent">추가</button></div><div style="max-height:320px;overflow:auto;margin-top:8px"><table><tr><th>학번</th><th>이름</th><th>비밀번호</th><th></th></tr>${[...S.students].sort((a,b)=>String(a.studentId).localeCompare(String(b.studentId))).map(s=>`<tr><td>${esc(s.studentId)}</td><td>${esc(s.name)}</td><td>${s.pw?`<b>${esc(s.pw)}</b> <a href="#" data-pwreset="${s.id}">초기화</a>`:'<span class="mute">미설정</span>'}</td><td><a href="#" data-del="students:${s.id}">삭제</a></td></tr>`).join("")}</table></div></div>
+<div class="card"><h3>교사 비밀번호 변경</h3><input id="np" type="password" placeholder="새 비밀번호 (4자 이상)"><br><br><button class="btn" data-act="setPin">변경</button></div><div class="card danger"><h3>⚠️ 학기 종료 · 데이터 초기화</h3><p class="mute">초기화할 항목을 고르세요. 지운 데이터는 되돌릴 수 없으니, 필요하면 먼저 내려받아 두세요.</p><div class="chk">${RESET.map(([k,v])=>`<label><input type="checkbox" class="rs" value="${k}"> ${v} (${S[k].length})</label>`).join("")}</div><div class="flex" style="margin-top:12px"><button class="btn s o" data-act="rsAll">전체 선택</button><button class="btn s o" data-act="backup">선택 항목 백업(JSON)</button><button class="btn rd" data-act="doReset">선택 항목 초기화</button></div></div></div></div>`}
+
+// ───── 동작
+const mkStu=(id,name)=>({id,studentId:id,grade:+id[0],classNum:+id.slice(1,3),num:+id.slice(3),name});
+const csv=t=>t.replace(/^\uFEFF/,"").split(/\r?\n/).map(l=>l.split(",").map(x=>x.trim())).filter(r=>r[0]);
+async function batchPut(c,arr){for(let i=0;i<arr.length;i+=400){const b=writeBatch(db);arr.slice(i,i+400).forEach(o=>b.set(doc(db,c,o.id),o,{merge:true}));await b.commit()}}
+const ymd=s=>`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6)}`;
+async function neis(){const k=$("#k").value.trim(),o=$("#o").value.trim(),sc=$("#sc").value.trim(),msg=$("#neis-msg");localStorage.setItem("neis",JSON.stringify({k,o,sc}));
+const[y,m]=S.ym.split("-"),last=new Date(y,m,0).getDate(),q=`Type=json&pSize=300&KEY=${k}&ATPT_OFCDC_SC_CODE=${o}&SD_SCHUL_CODE=${sc}`;msg.textContent="불러오는 중…";
+try{const a=await(await fetch(`https://open.neis.go.kr/hub/SchoolSchedule?${q}&AA_FROM_YMD=${y}${m}01&AA_TO_YMD=${y}${m}${last}`)).json(),rows=(a.SchoolSchedule?.[1]?.row||[]).filter(r=>r.EVENT_NM&&r.EVENT_NM!=="토요휴업일");
+await batchPut("schedule",rows.map((r,i)=>({id:"n"+r.AA_YMD+"_"+i,date:ymd(r.AA_YMD),name:r.EVENT_NM,src:"neis"})));
+const b=await(await fetch(`https://open.neis.go.kr/hub/mealServiceDietInfo?${q}&MLSV_FROM_YMD=${y}${m}01&MLSV_TO_YMD=${y}${m}${last}`)).json(),mr=b.mealServiceDietInfo?.[1]?.row||[];
+await batchPut("meals",mr.map(r=>({id:"n"+r.MLSV_YMD+r.MMEAL_SC_CODE,date:ymd(r.MLSV_YMD),type:r.MMEAL_SC_NM,menu:r.DDISH_NM.replace(/<br\s*\/?>/g,"\n").replace(/\s*\([\d.,\s]+\)/g,""),src:"neis"})));
+msg.textContent=`완료: 일정 ${rows.length}건, 급식 ${mr.length}건`}catch(e){msg.textContent="실패 — 키/코드를 확인하거나 CSV·직접 입력을 이용하세요."}}
+function enter(user){S.user=user;S.page="home";closeModal();render()}
+const A={
+login(){const v=$("#login-id").value.trim();if(!v)return;
+ if(v==="교사"||v==="관리자")return modal(`<h2>교사 로그인</h2><label>비밀번호</label><input id="pw-in" type="password"><br><br><button class="btn" data-act="pwOk" data-who="t" style="width:100%">확인</button>`,1);
+ const s=S.students.find(x=>x.studentId===v);if(!s)return alert("등록되지 않은 학번입니다.");
+ if(!s.pw)return enter({role:"student",data:s});
+ modal(`<h2>${esc(s.name)} 학생</h2><label>비밀번호</label><input id="pw-in" type="password"><br><br><button class="btn" data-act="pwOk" data-who="${s.id}" style="width:100%">확인</button>`,1)},
+async pwOk(who){const p=$("#pw-in").value;if(!p)return;
+ if(who==="t"){const r=await getDoc(doc(db,"config","admin")),h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
+ const s=S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
+logout(){S.user=null;render()},
+addNotice(){const t=$("#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");put("notices",{id:uid("n"),title:t,body:$("#n-body").value,createdAt:new Date().toISOString(),...tgtVals()})},
+addAssess(){const t=$("#a-title").value.trim(),d=$("#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");put("assessments",{id:uid("as"),subject:$("#a-subj").value,title:t,date:d,desc:$("#a-desc").value,...tgtVals()})},
+addAssign(){const v=assignVals();if(!v.title)return alert("제목을 입력하세요.");put("assignments",{id:uid("assign_"),...v,order:S.assignments.length+1,createdAt:today()})},
+async saveAssign(id){const v=assignVals();if(!v.title)return alert("제목을 입력하세요.");const a=S.assignments.find(x=>x.id===id);await put("assignments",{...a,...v});
+ // 과제 제목이 바뀌면 제출물에 저장된 과제명도 함께 갱신
+ if(a.title!==v.title)await batchPut("submissions",S.submissions.filter(s=>s.assignmentId===id).map(s=>({id:s.id,assignmentTitle:v.title})));closeModal()},
+async doSubmit(id){const a=S.assignments.find(x=>x.id===id),f=$("#u-file").files[0];let fileName="",fileData="";
+ if(!$("#u-body").value.trim()&&!$("#u-url").value.trim()&&!f)return alert("내용, 링크, 첨부파일 중 하나 이상을 입력해야 제출할 수 있습니다.");
+ if(f){if(f.size>7e5)return alert("파일이 700KB를 초과합니다. 링크로 제출해 주세요.");fileName=f.name;fileData=await new Promise(r=>{const x=new FileReader;x.onload=e=>r(e.target.result);x.readAsDataURL(f)})}
+ const now=new Date(),s=st();await put("submissions",{id:"sub_"+Date.now(),assignmentId:id,assignmentTitle:a.title,subTitle:$("#u-sub").value||"제출물",studentId:s.studentId,studentName:s.name,grade:s.grade,classNum:s.classNum,num:s.num,content:$("#u-body").value.trim(),fileName,fileData,webUrl:$("#u-url").value.trim(),submittedAt:now.toLocaleString("ko-KR"),isLate:!!a.deadline&&now>new Date(a.deadline)});closeModal();alert("제출되었습니다.")},
+addBoard(){const t=$("#b-text").value.trim();if(t)put("board",{id:uid("b"),name:T()?"선생님":st().name,studentId:st()?.studentId||"",text:t,createdAt:new Date().toISOString()})},
+addCounsel(){const b=$("#c-body").value.trim();if(!b)return alert("내용을 입력하세요.");put("counsel",{id:uid("c"),studentId:st().studentId,name:st().name,date:$("#c-date").value,type:$("#c-type").value,body:b,reply:"",createdAt:new Date().toISOString()});alert("신청되었습니다.")},
+addSched(){const n=$("#m-name").value.trim();if(n)put("schedule",{id:uid("m"),date:$("#m-date").value,name:n})},
+addMeal(){const m=$("#g-menu").value.trim();if(m)put("meals",{id:"m"+$("#g-date").value+$("#g-type").value,date:$("#g-date").value,type:$("#g-type").value,menu:m})},
+addStudent(){const i=$("#st-id").value.trim(),n=$("#st-name").value.trim();if(/^\d{5}$/.test(i)&&n)put("students",mkStu(i,n));else alert("학번 5자리와 이름을 입력하세요.")},
+async stuPw(){const a=$("#sp1").value,b=$("#sp2").value;if(a.length<4)return alert("4자 이상 입력하세요.");if(a!==b)return alert("두 비밀번호가 다릅니다.");await put("students",{id:st().id,pw:a});S.user.data={...st(),pw:a};alert("저장되었습니다. 다음 로그인부터 비밀번호가 필요합니다.");render()},
+async setPin(){const p=$("#np").value;if(p.length>=4){await setDoc(doc(db,"config","admin"),{h:await sha(p)});alert("변경되었습니다.")}else alert("4자 이상 입력하세요.")},
+neis,
+rsAll(){const b=document.querySelectorAll(".rs"),on=[...b].some(x=>!x.checked);b.forEach(x=>x.checked=on)},
+backup(){const ks=[...document.querySelectorAll(".rs:checked")].map(x=>x.value);if(!ks.length)return alert("백업할 항목을 선택하세요.");
+ const o={};ks.forEach(k=>o[k]=S[k]);const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:"application/json"}));a.download=`백업_${today()}.json`;a.click()},
+async doReset(){const ks=[...document.querySelectorAll(".rs:checked")].map(x=>x.value);if(!ks.length)return alert("초기화할 항목을 하나 이상 선택하세요.");
+ const names=ks.map(k=>RESET.find(r=>r[0]===k)[1]).join(", ");if(!confirm(`[${names}] 데이터를 모두 삭제합니다. 되돌릴 수 없습니다. 계속할까요?`))return;
+ if(prompt("확인을 위해 '초기화'라고 입력하세요.")!=="초기화")return alert("취소되었습니다.");
+ try{for(const k of ks){const ids=S[k].map(x=>x.id);for(let i=0;i<ids.length;i+=400){const b=writeBatch(db);ids.slice(i,i+400).forEach(id=>b.delete(doc(db,k,id)));await b.commit()}}alert(`[${names}] 초기화가 완료되었습니다.`)}catch(e){alert("초기화 중 오류가 발생했습니다.")}}};
+document.addEventListener("click",e=>{if(e.target.dataset?.close)return closeModal();
+const t=e.target.closest("[data-act],[data-go],[data-ym],[data-del],[data-open],[data-view],[data-reply],[data-pwreset],[data-notice],[data-assess]");if(!t)return;const d=t.dataset;
+if(d.go){S.page=d.go;render()}
+else if(d.ym){const[y,m]=S.ym.split("-").map(Number),n=new Date(y,m-1+ +d.ym,1);S.ym=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0");render()}
+else if(d.del){e.preventDefault();const[c,id]=d.del.split(":");del(c,id)}
+else if(d.open)openAssign(d.open);else if(d.view)viewSub(d.view);
+else if(d.notice){const n=S.notices.find(x=>x.id===d.notice);modal(`<span class="tag">${tgt(n)}</span><h2 style="margin-top:6px">${esc(n.title)}</h2><p class="sub">${n.createdAt.slice(0,10)}</p><div class="big">${esc(n.body)}</div>`)}
+else if(d.assess){const a=S.assessments.find(x=>x.id===d.assess);modal(`<span class="tag r">${dday(a.date)}</span> <span class="tag b">${esc(a.subject)}</span><h2 style="margin-top:6px">${esc(a.title)}</h2><p class="sub">실시일 ${a.date}</p><div class="big">${esc(a.desc)}</div>`)}
+else if(d.reply){put("counsel",{id:d.reply,reply:$("#r-"+d.reply).value})}
+else if(d.pwreset){e.preventDefault();if(confirm("비밀번호를 초기화할까요? (학번만으로 로그인 가능)"))put("students",{id:d.pwreset,pw:""})}
+else A[d.act]?.(d.id||d.who)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();if(e.key!=="Enter"||e.isComposing)return;if(e.target.id==="login-id")A.login();if(e.target.id==="pw-in")$("#modal [data-act=pwOk]").click()});
+document.addEventListener("change",async e=>{if(e.target.id==="mealDate"){S.mealDate=e.target.value;return render()}
+if(e.target.dataset.asort){S.asort=e.target.value;try{localStorage.setItem("asort",S.asort)}catch(err){}return render()}
+if(e.target.dataset.sf){const k=e.target.dataset.sf;S.sf[k]=e.target.value;if(k==="g")S.sf.c="";return render()}
+const k=e.target.dataset.csv;if(!k)return;const rows=csv(await e.target.files[0].text());
+const arr=k==="schedule"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:uid("f"),date:r[0],name:r[1]})):k==="meals"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:"m"+r[0]+(r[1]||"중식"),date:r[0],type:r[1]||"중식",menu:(r[2]||"").split("/").join("\n")})):rows.filter(r=>/^\d{5}$/.test(r[0])).map(r=>mkStu(r[0],r[1]));
+await batchPut(k,arr);alert(arr.length+"건을 불러왔습니다.")});
+COLS.forEach(c=>onSnapshot(collection(db,c),s=>{S[c]=s.docs.map(d=>d.data());
+ if(c==="students"&&S.user?.role==="student"){const me=S[c].find(x=>x.id===st().id);if(me)S.user.data=me}
+ if(!document.activeElement?.matches("#main input,#main textarea,#main select"))render()}));
+render();
+</script>
 </body>
 </html>
