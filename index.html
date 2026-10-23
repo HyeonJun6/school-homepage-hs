@@ -43,6 +43,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .md.sm{width:min(400px,100%)}.x{position:absolute;top:14px;right:16px;border:0;background:none;font-size:26px;cursor:pointer;color:var(--mute)}
 .big{white-space:pre-wrap;font-size:17px;line-height:1.8;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;min-height:120px}
 .big img{max-width:100%;border-radius:10px;margin-top:10px}
+.pwv{font-family:ui-monospace,Consolas,monospace;font-weight:700;letter-spacing:2px}.pwv.on{background:#fdf0cd;color:#8a6200;padding:2px 8px;border-radius:6px;font-size:16px}
+tr.hit td{background:#fbf7ea}
 @media(max-width:1100px){.grid,.g2{grid-template-columns:1fr}.span2{grid-column:auto}aside{width:190px}main{padding:20px}}
 </style>
 </head>
@@ -55,7 +57,7 @@ import {getFirestore,collection,doc,setDoc,deleteDoc,getDoc,onSnapshot,writeBatc
 // 기존 과제 제출 웹앱과 같은 Firebase 프로젝트 (students / assignments / submissions 그대로 연동)
 const db=getFirestore(initializeApp({apiKey:"AIzaSyBdyDgmPFg-Py1ej87klSWqXB8TC5yixkU",authDomain:"assignment-submission-hs.firebaseapp.com",projectId:"assignment-submission-hs",storageBucket:"assignment-submission-hs.firebasestorage.app",messagingSenderId:"702547388370",appId:"1:702547388370:web:f47dc11400725b67324a0b"}));
 const COLS=["students","assignments","submissions","notices","assessments","board","counsel","schedule","meals"];
-const S={user:null,page:"home",ym:new Date().toISOString().slice(0,7),mealDate:new Date().toISOString().slice(0,10),sf:{a:"",g:"",c:"",sort:"sid"},asort:(()=>{try{return localStorage.getItem("asort")||"dl"}catch(e){return "dl"}})()};COLS.forEach(c=>S[c]=[]);
+const S={user:null,page:"home",ym:new Date().toISOString().slice(0,7),mealDate:new Date().toISOString().slice(0,10),sf:{a:"",g:"",c:"",sort:"sid"},asort:(()=>{try{return localStorage.getItem("asort")||"dl"}catch(e){return "dl"}})(),stq:"",pwShow:""};let pwTimer=0;COLS.forEach(c=>S[c]=[]);
 const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)},T=()=>S.user?.role==="teacher",st=()=>S.user?.data;
 const put=(c,o)=>setDoc(doc(db,c,o.id),o,{merge:true});
@@ -89,7 +91,7 @@ const RESET=[["schedule","학사일정"],["meals","급식"],["students","학생 
 const NAV=[["home","🏠 홈"],["notice","📢 공지사항"],["assess","📝 수행평가"],["assign","📥 과제 제출"],["board","💬 방명록"],["counsel","🤝 상담 신청"]];
 function side(){$("#side").innerHTML=`<h1>신현준T</h1><small>교과 통합관리</small>`+(S.user?NAV.concat(T()?[["admin","⚙️ 관리"]]:[["settings","🔒 설정"]]).map(([k,v])=>`<button class="nav ${S.page===k?"on":""}" data-go="${k}">${v}</button>`).join("")+`<div class="who"><b>${T()?"교사":esc(st().name)}</b><br><span style="color:#a9c7ba">${T()?"관리자 모드":`${st().grade}학년 ${st().classNum}반 ${st().num}번`}</span><br><button class="btn s o" style="margin-top:8px" data-act="logout">로그아웃</button></div>`:"")}
 function render(){side();const m=$("#main");if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button></div>`;setTimeout(()=>$("#login-id")?.focus(),30);return}
-m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()}
+m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]();if(S.page==="admin"){filterRoster();paintPw()}}
 
 // ───── 홈
 function monthCal(){const[y,mo]=S.ym.split("-").map(Number),first=new Date(y,mo-1,1).getDay(),n=new Date(y,mo,0).getDate();let h=["일","월","화","수","목","금","토"].map(d=>`<div class="h">${d}</div>`).join("")+"<div></div>".repeat(first);
@@ -159,9 +161,21 @@ return `<h2>관리</h2><p class="sub">NEIS 연동 · 파일 업로드 · 직접 
 <div class="col"><div class="card"><h3>① NEIS 동기화 (학사일정·급식)</h3><p class="mute">NEIS 교육정보 개방포털(open.neis.go.kr)에서 인증키를 발급받고, 시도교육청코드/표준학교코드를 입력하세요. 이 설정은 이 브라우저에만 저장됩니다.</p><label>인증키</label><input id="k" value="${esc(c.k||"")}"><div class="flex"><div><label>시도교육청코드 (예: J10)</label><input id="o" value="${esc(c.o||"")}"></div><div><label>표준학교코드</label><input id="sc" value="${esc(c.sc||"")}"></div></div><br><button class="btn" data-act="neis">${S.ym} 학사일정 + 급식 가져오기</button> <span id="neis-msg" class="mute"></span></div>
 <div class="card"><h3>② 파일 업로드 (CSV)</h3><label>학사일정 CSV — 날짜,행사명 (예: 2026-11-12,수능)</label><input type="file" accept=".csv,.txt" data-csv="schedule"><label>급식 CSV — 날짜,구분,메뉴(/로 구분)</label><input type="file" accept=".csv,.txt" data-csv="meals"><label>학생 명단 CSV — 학번,이름 (학번 5자리: 학년+반2자리+번호2자리)</label><input type="file" accept=".csv,.txt" data-csv="students"></div>
 <div class="card"><h3>③ 직접 입력</h3><label>학사일정</label><div class="flex"><input id="m-date" type="date" value="${today()}" style="flex:0 0 180px"><input id="m-name" placeholder="행사명"><button class="btn" data-act="addSched">일정 추가</button></div><label>급식</label><div class="flex"><input id="g-date" type="date" value="${today()}"><select id="g-type" style="flex:0 0 100px"><option>조식</option><option selected>중식</option><option>석식</option></select></div><textarea id="g-menu" placeholder="메뉴 (줄바꿈으로 구분)" style="margin-top:8px"></textarea><br><br><button class="btn" data-act="addMeal">급식 저장</button></div>
-</div><div class="col"><div class="card"><h3>학생 명단 (${S.students.length}명)</h3><div class="flex"><input id="st-id" placeholder="학번 10101"><input id="st-name" placeholder="이름"><button class="btn" data-act="addStudent">추가</button></div><div style="max-height:320px;overflow:auto;margin-top:8px"><table><tr><th>학번</th><th>이름</th><th>비밀번호</th><th></th></tr>${[...S.students].sort((a,b)=>String(a.studentId).localeCompare(String(b.studentId))).map(s=>`<tr><td>${esc(s.studentId)}</td><td>${esc(s.name)}</td><td>${s.pw?`<b>${esc(s.pw)}</b> <a href="#" data-pwreset="${s.id}">초기화</a>`:'<span class="mute">미설정</span>'}</td><td><a href="#" data-del="students:${s.id}">삭제</a></td></tr>`).join("")}</table></div></div>
+</div><div class="col"><div class="card"><h3>학생 명단 (${S.students.length}명)</h3><div class="flex"><input id="st-id" placeholder="학번 10101"><input id="st-name" placeholder="이름"><button class="btn" data-act="addStudent">추가</button></div>
+<div class="flex" style="margin-top:10px"><input id="st-q" placeholder="🔍 학번 또는 이름으로 검색" value="${esc(S.stq)}" autocomplete="off"><span id="st-cnt" class="mute" style="white-space:nowrap"></span></div>
+<p class="mute" style="margin:6px 0 0">비밀번호는 가려져 있습니다. '보기'를 누르면 그 학생 것만 10초간 표시됩니다.</p>
+<div style="max-height:360px;overflow:auto;margin-top:6px"><table><tr><th>학번</th><th>이름</th><th>비밀번호</th><th></th></tr>${[...S.students].sort((a,b)=>String(a.studentId).localeCompare(String(b.studentId))).map(s=>`<tr data-k="${esc(s.studentId+" "+s.name)}"><td>${esc(s.studentId)}</td><td>${esc(s.name)}</td><td>${s.pw?`<span class="pwv" data-pwv="${s.id}">●●●●</span> <button class="btn s o" data-pwshow="${s.id}">보기</button> <a href="#" data-pwreset="${s.id}">초기화</a>`:'<span class="mute">미설정</span>'}</td><td><a href="#" data-del="students:${s.id}">삭제</a></td></tr>`).join("")}</table></div></div>
 <div class="card"><h3>교사 비밀번호 변경</h3><input id="np" type="password" placeholder="새 비밀번호 (4자 이상)"><br><br><button class="btn" data-act="setPin">변경</button></div><div class="card danger"><h3>⚠️ 학기 종료 · 데이터 초기화</h3><p class="mute">초기화할 항목을 고르세요. 지운 데이터는 되돌릴 수 없으니, 필요하면 먼저 내려받아 두세요.</p><div class="chk">${RESET.map(([k,v])=>`<label><input type="checkbox" class="rs" value="${k}"> ${v} (${S[k].length})</label>`).join("")}</div><div class="flex" style="margin-top:12px"><button class="btn s o" data-act="rsAll">전체 선택</button><button class="btn s o" data-act="backup">선택 항목 백업(JSON)</button><button class="btn rd" data-act="doReset">선택 항목 초기화</button></div></div></div></div>`}
 
+// ───── 학생 명단 검색 · 비밀번호 가림
+// 검색: 학번 일부(예: 106, 10607) 또는 이름 일부(예: 김태)로 즉시 걸러냄
+function filterRoster(){const q=S.stq.replace(/\s/g,"").toLowerCase(),rows=document.querySelectorAll("tr[data-k]");let n=0;
+ rows.forEach(r=>{const ok=!q||r.dataset.k.replace(/\s/g,"").toLowerCase().includes(q);r.style.display=ok?"":"none";r.classList.toggle("hit",!!q&&ok);if(ok)n++});
+ const c=$("#st-cnt");if(c)c.textContent=q?`${n}명 찾음`:""}
+// 공개: 한 번에 한 학생만, 10초 뒤 자동으로 다시 가림
+function paintPw(){document.querySelectorAll("[data-pwv]").forEach(el=>{const on=el.dataset.pwv===S.pwShow,s=on&&S.students.find(x=>x.id===S.pwShow);
+ el.textContent=on&&s?.pw?s.pw:"●●●●";el.classList.toggle("on",!!on);const b=document.querySelector(`[data-pwshow="${el.dataset.pwv}"]`);if(b)b.textContent=on?"숨기기":"보기"})}
+function showPw(id){clearTimeout(pwTimer);S.pwShow=S.pwShow===id?"":id;paintPw();if(S.pwShow)pwTimer=setTimeout(()=>{S.pwShow="";paintPw()},10000)}
 // ───── 동작
 const mkStu=(id,name)=>({id,studentId:id,grade:+id[0],classNum:+id.slice(1,3),num:+id.slice(3),name});
 const csv=t=>t.replace(/^\uFEFF/,"").split(/\r?\n/).map(l=>l.split(",").map(x=>x.trim())).filter(r=>r[0]);
@@ -184,7 +198,7 @@ login(){const v=$("#login-id").value.trim();if(!v)return;
 async pwOk(who){const p=$("#pw-in").value;if(!p)return;
  if(who==="t"){const r=await getDoc(doc(db,"config","admin")),h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
  const s=S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
-logout(){S.user=null;render()},
+logout(){S.user=null;S.pwShow="";S.stq="";clearTimeout(pwTimer);render()},
 async addNotice(){const t=$("#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const x=await readAttach();if(!x)return;await put("notices",{id:uid("n"),title:t,body:$("#n-body").value,createdAt:new Date().toISOString(),...tgtVals(),...x});alert("등록되었습니다.");render()},
 async addAssess(){const t=$("#a-title").value.trim(),d=$("#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach();if(!x)return;await put("assessments",{id:uid("as"),subject:$("#a-subj").value,title:t,date:d,desc:$("#a-desc").value,...tgtVals(),...x});alert("등록되었습니다.");render()},
 async addAssign(){const v=assignVals();if(!v.title)return alert("제목을 입력하세요.");const files=await readAssignFiles();if(!files)return;await put("assignments",{id:uid("assign_"),...v,files,order:S.assignments.length+1,createdAt:today()});alert("등록되었습니다.");render()},
@@ -211,7 +225,7 @@ async doReset(){const ks=[...document.querySelectorAll(".rs:checked")].map(x=>x.
  if(prompt("확인을 위해 '초기화'라고 입력하세요.")!=="초기화")return alert("취소되었습니다.");
  try{for(const k of ks){const ids=S[k].map(x=>x.id);for(let i=0;i<ids.length;i+=400){const b=writeBatch(db);ids.slice(i,i+400).forEach(id=>b.delete(doc(db,k,id)));await b.commit()}}alert(`[${names}] 초기화가 완료되었습니다.`)}catch(e){alert("초기화 중 오류가 발생했습니다.")}}};
 document.addEventListener("click",e=>{if(e.target.dataset?.close)return closeModal();
-const t=e.target.closest("[data-act],[data-go],[data-ym],[data-del],[data-open],[data-view],[data-reply],[data-pwreset],[data-notice],[data-assess]");if(!t)return;const d=t.dataset;
+const t=e.target.closest("[data-act],[data-go],[data-ym],[data-del],[data-open],[data-view],[data-reply],[data-pwreset],[data-pwshow],[data-notice],[data-assess]");if(!t)return;const d=t.dataset;
 if(d.go){S.page=d.go;render()}
 else if(d.ym){const[y,m]=S.ym.split("-").map(Number),n=new Date(y,m-1+ +d.ym,1);S.ym=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0");render()}
 else if(d.del){e.preventDefault();const[c,id]=d.del.split(":");del(c,id)}
@@ -219,9 +233,11 @@ else if(d.open)openAssign(d.open);else if(d.view)viewSub(d.view);
 else if(d.notice){const n=S.notices.find(x=>x.id===d.notice);modal(`<span class="tag">${tgt(n)}</span><h2 style="margin-top:6px">${esc(n.title)}</h2><p class="sub">${n.createdAt.slice(0,10)}</p><div class="big">${esc(n.body)}</div><div style="margin-top:12px">${attachView(n)}</div>`)}
 else if(d.assess){const a=S.assessments.find(x=>x.id===d.assess);modal(`<span class="tag r">${dday(a.date)}</span> <span class="tag b">${esc(a.subject)}</span><h2 style="margin-top:6px">${esc(a.title)}</h2><p class="sub">실시일 ${a.date}</p><div class="big">${esc(a.desc)}</div><div style="margin-top:12px">${attachView(a)}</div>`)}
 else if(d.reply){put("counsel",{id:d.reply,reply:$("#r-"+d.reply).value})}
+else if(d.pwshow)showPw(d.pwshow);
 else if(d.pwreset){e.preventDefault();if(confirm("비밀번호를 초기화할까요? (학번만으로 로그인 가능)"))put("students",{id:d.pwreset,pw:""})}
 else A[d.act]?.(d.id||d.who)});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();if(e.key!=="Enter"||e.isComposing)return;if(e.target.id==="login-id")A.login();if(e.target.id==="pw-in")$("#modal [data-act=pwOk]").click()});
+document.addEventListener("input",e=>{if(e.target.id==="st-q"){S.stq=e.target.value;filterRoster()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&e.target.id==="st-q"){S.stq="";e.target.value="";return filterRoster()}if(e.key==="Escape")closeModal();if(e.key!=="Enter"||e.isComposing)return;if(e.target.id==="login-id")A.login();if(e.target.id==="pw-in")$("#modal [data-act=pwOk]").click()});
 document.addEventListener("change",async e=>{if(e.target.id==="mealDate"){S.mealDate=e.target.value;return render()}
 if(e.target.dataset.asort){S.asort=e.target.value;try{localStorage.setItem("asort",S.asort)}catch(err){}return render()}
 if(e.target.dataset.sf){const k=e.target.dataset.sf;S.sf[k]=e.target.value;if(k==="g")S.sf.c="";return render()}
