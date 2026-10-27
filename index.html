@@ -70,19 +70,25 @@ const closeModal=()=>$("#modal").innerHTML="";
 // 대상(학년/반/학생) 필터: 0 또는 공란 = 전체
 const mine=o=>T()||((!o.grade||o.grade==st().grade)&&(!o.classNum||o.classNum==st().classNum)&&(!o.studentId||o.studentId===st().studentId));
 const tgt=o=>(o.studentId?`${o.studentId} 개인`:o.grade?`${o.grade}학년${o.classNum?" "+o.classNum+"반":""}`:"전체");
-const tgtFields=()=>`<div class="flex"><div><label>학년</label><input id="f-grade" type="number" min="0" max="3" placeholder="전체: 0"></div><div><label>반</label><input id="f-class" type="number" min="0" placeholder="전체: 0"></div><div><label>학번(선택)</label><input id="f-sid" placeholder="예: 10101"></div></div>`;
-const tgtVals=()=>({grade:+$("#f-grade").value||0,classNum:+$("#f-class").value||0,studentId:$("#f-sid").value.trim()});
+// 같은 id의 입력란이 본문 작성란과 수정 팝업에 동시에 있을 수 있으므로, 읽을 때는 항상 범위(r)를 지정
+const q=(r,s)=>r.querySelector(s);
+const tgtFields=(o={})=>`<div class="flex"><div><label>학년</label><input id="f-grade" type="number" min="0" max="3" placeholder="전체: 0" value="${o.grade||""}"></div><div><label>반</label><input id="f-class" type="number" min="0" placeholder="전체: 0" value="${o.classNum||""}"></div><div><label>학번(선택)</label><input id="f-sid" placeholder="예: 10101" value="${esc(o.studentId||"")}"></div></div>`;
+const tgtVals=r=>({grade:+q(r,"#f-grade").value||0,classNum:+q(r,"#f-class").value||0,studentId:q(r,"#f-sid").value.trim()});
 // 과제 정렬: 기본은 마감 임박순(마감 없는 '상시' 과제는 맨 뒤)
 const dlKey=a=>a.deadline||"9999";
 const ASORT={dl:["마감 임박순",(a,b)=>dlKey(a).localeCompare(dlKey(b))],dlr:["마감 늦은순",(a,b)=>dlKey(b).localeCompare(dlKey(a))],title:["제목 가나다순",(a,b)=>a.title.localeCompare(b.title,"ko")],titler:["제목 역순",(a,b)=>b.title.localeCompare(a.title,"ko")],new:["최근 등록순",(a,b)=>String(b.id).localeCompare(String(a.id))],old:["등록순",(a,b)=>String(a.id).localeCompare(String(b.id))]};
 const myAssigns=()=>S.assignments.filter(a=>T()||(a.grade==st().grade&&(!a.classes?.length||a.classes.map(Number).includes(+st().classNum)))).sort((a,b)=>(ASORT[S.asort]||ASORT.dl)[1](a,b)||a.title.localeCompare(b.title,"ko"));
 const asortSel=()=>`<select data-asort="1" style="width:auto;padding:4px 8px;font-size:13px">${Object.entries(ASORT).map(([k,[t]])=>`<option value="${k}" ${S.asort===k?"selected":""}>${t}</option>`).join("")}</select>`;
 // 공지·수행평가 첨부: 링크 + 여러 파일 (Firestore 문서 한도 때문에 합계 700KB 이하)
-const attachFields=()=>`<label>링크(선택)</label><input id="x-link" placeholder="https://"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label><input id="x-files" type="file" multiple>`;
-async function readAttach(){const fs=[...$("#x-files").files],sum=fs.reduce((t,f)=>t+f.size,0);
+const fileRows=(files,cls)=>(files||[]).map((f,i)=>`<div class="flex" style="margin-bottom:4px"><a href="${f.fileData}" download="${esc(f.fileName)}" style="flex:1">📎 ${esc(f.fileName)}</a><label style="all:unset;font-size:13px;color:var(--r);cursor:pointer;display:flex;gap:4px;align-items:center"><input type="checkbox" class="${cls}" value="${i}" style="width:auto"> 삭제</label></div>`).join("");
+const attachFields=(o={})=>`<label>링크(선택)</label><input id="x-link" placeholder="https://" value="${esc(o.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(o.files,"x-rmfile")}<input id="x-files" type="file" multiple>`;
+// 첨부 공통 처리: 기존 파일 중 '삭제' 체크 안 한 것 + 새로 고른 파일 (합계 700KB 이하)
+async function mergeFiles(r,old,rmCls,inputSel){const rm=new Set([...r.querySelectorAll("."+rmCls+":checked")].map(x=>+x.value)),keep=(old||[]).filter((_,i)=>!rm.has(i)),fs=[...q(r,inputSel).files];
+ const sum=keep.reduce((t,f)=>t+f.fileData.length*0.75,0)+fs.reduce((t,f)=>t+f.size,0);
  if(sum>7e5){alert(`첨부파일 합계가 ${Math.round(sum/1024)}KB입니다. 700KB 이하로 줄이거나, 큰 파일은 드라이브 링크로 올려 주세요.`);return null}
- const files=await Promise.all(fs.map(f=>new Promise(r=>{const x=new FileReader;x.onload=e=>r({fileName:f.name,fileData:e.target.result});x.readAsDataURL(f)})));
- return {linkUrl:$("#x-link").value.trim(),files}}
+ const add=await Promise.all(fs.map(f=>new Promise(res=>{const x=new FileReader;x.onload=e=>res({fileName:f.name,fileData:e.target.result});x.readAsDataURL(f)})));
+ return keep.concat(add)}
+async function readAttach(r,old=[]){const files=await mergeFiles(r,old,"x-rmfile","#x-files");return files&&{linkUrl:q(r,"#x-link").value.trim(),files}}
 const attachView=o=>`${o.linkUrl?`<div><a href="${esc(o.linkUrl)}" target="_blank">🔗 ${esc(o.linkUrl)}</a></div>`:""}${(o.files||[]).map(f=>`<div><a href="${f.fileData}" download="${esc(f.fileName)}">📎 ${esc(f.fileName)}</a></div>`).join("")}`;
 const clip=o=>(o.files?.length||o.linkUrl)?` <span class="mute" title="첨부 있음">📎</span>`:"";
 const sidKey=s=>(+s.grade||0)*1e4+(+s.classNum||0)*100+(+s.num||0);
@@ -106,10 +112,16 @@ return `<h2>안녕하세요${T()?", 선생님":", "+esc(st().name)+" 학생"} �
 <div class="card"><h3>📥 과제 <span class="flex">${asortSel()}<button class="btn s o" data-go="assign">전체</button></span></h3>${due.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag y">${a.deadline?dday(a.deadline.slice(0,10)):"상시"}</span><div class="mute">${esc(a.subject||"")}</div></div>`).join("")||'<span class="mute">진행 중인 과제가 없습니다.</span>'}</div></div>`}
 
 // ───── 공지 / 수행평가
-function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.</p><div class="${T()?"g2":""}"><div class="card">${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <b>${esc(n.title)}</b> ${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}<div style="white-space:pre-line">${esc(n.body)}</div>${attachView(n)}<div class="mute">${n.createdAt.slice(0,10)}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
+function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <button class="link" data-notice="${n.id}">${esc(n.title)}</button> ${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}<div style="white-space:pre-line">${esc(n.body)}</div>${attachView(n)}<div class="mute">${n.createdAt.slice(0,10)}${n.editedAt?` · ${n.editedAt.slice(0,10)} 수정`:""}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
 ${T()?`<div class="card"><h3>새 공지 작성</h3><label>제목</label><input id="n-title"><label>내용</label><textarea id="n-body"></textarea>${attachFields()}${tgtFields()}<br><button class="btn" data-act="addNotice">등록</button></div>`:""}</div>`}
-function assess(){return `<h2>수행평가 안내</h2><p class="sub">일정과 평가 기준을 확인하세요.</p><div class="${T()?"g2":""}"><div class="card">${S.assessments.filter(mine).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <b>${esc(a.title)}</b> <span class="tag b">${esc(a.subject)}</span> <span class="tag">${tgt(a)}</span> ${T()?`<button class="btn s d" data-del="assessments:${a.id}">삭제</button>`:""}<div class="mute">${a.date}</div><div style="white-space:pre-line">${esc(a.desc)}</div>${attachView(a)}</div>`).join("")||'<span class="mute">등록된 수행평가가 없습니다.</span>'}</div>
+function assess(){return `<h2>수행평가 안내</h2><p class="sub">일정과 평가 기준을 확인하세요.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.assessments.filter(mine).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <button class="link" data-assess="${a.id}">${esc(a.title)}</button> <span class="tag b">${esc(a.subject)}</span> <span class="tag">${tgt(a)}</span> ${T()?`<button class="btn s d" data-del="assessments:${a.id}">삭제</button>`:""}<div class="mute">${a.date}</div><div style="white-space:pre-line">${esc(a.desc)}</div>${attachView(a)}</div>`).join("")||'<span class="mute">등록된 수행평가가 없습니다.</span>'}</div>
 ${T()?`<div class="card"><h3>수행평가 등록</h3><label>과목</label><input id="a-subj"><label>제목</label><input id="a-title"><label>평가 기준·유의사항</label><textarea id="a-desc"></textarea>${attachFields()}${tgtFields()}<label>실시일</label><input id="a-date" type="date"><br><br><button class="btn" data-act="addAssess">등록</button></div>`:""}</div>`}
+
+// 교사용 수정 팝업 (과제 수정과 같은 방식)
+function editNotice(id){const n=S.notices.find(x=>x.id===id);if(!n)return;
+ modal(`<h2>공지사항 수정</h2><label>제목</label><input id="n-title" value="${esc(n.title)}"><label>내용</label><textarea id="n-body" style="min-height:160px">${esc(n.body)}</textarea>${attachFields(n)}${tgtFields(n)}<br><div class="flex"><button class="btn" data-act="saveNotice" data-id="${id}">저장</button><button class="btn d" data-del="notices:${id}">공지 삭제</button></div>`)}
+function editAssess(id){const a=S.assessments.find(x=>x.id===id);if(!a)return;
+ modal(`<h2>수행평가 수정</h2><label>과목</label><input id="a-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="a-title" value="${esc(a.title)}"><label>평가 기준·유의사항</label><textarea id="a-desc" style="min-height:160px">${esc(a.desc||"")}</textarea>${attachFields(a)}${tgtFields(a)}<label>실시일</label><input id="a-date" type="date" value="${esc(a.date)}"><br><br><div class="flex"><button class="btn" data-act="saveAssess" data-id="${id}">저장</button><button class="btn d" data-del="assessments:${id}">수행평가 삭제</button></div>`)}
 
 // ───── 과제 제출
 function assign(){const as=myAssigns(),cnt=id=>new Set(S.submissions.filter(s=>s.assignmentId===id).map(s=>s.studentId)).size;
@@ -118,14 +130,10 @@ if(!T())return `<h2>과제 제출</h2><p class="sub">과제 제목을 눌러 상
 return `<h2>과제 제출</h2><p class="sub">과제를 만들고 제출물을 확인합니다.</p><div class="g2">${list}
 <div class="card"><h3>과제 만들기</h3>${assignFields({grade:1})}<br><button class="btn" data-act="addAssign">등록</button></div>
 <div class="card full">${subTable()}</div></div>`}
-const assignFields=a=>`<label>과목</label><input id="s-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="s-title" value="${esc(a.title||"")}"><label>안내</label><textarea id="s-desc" style="min-height:140px">${esc(a.desc||"")}</textarea><div class="flex"><div><label>학년</label><input id="s-grade" type="number" min="1" max="3" value="${a.grade||1}"></div><div><label>반</label><input id="s-classes" placeholder="1, 2, 3 / 전체: 공란" value="${esc((a.classes||[]).join(", "))}"></div></div><label>마감</label><input id="s-dl" type="datetime-local" value="${esc(a.deadline||"")}"><label>링크(선택)</label><input id="s-link" placeholder="https://" value="${esc(a.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${(a.files||[]).map((f,i)=>`<div class="flex" style="margin-bottom:4px"><a href="${f.fileData}" download="${esc(f.fileName)}" style="flex:1">📎 ${esc(f.fileName)}</a><label style="all:unset;font-size:13px;color:var(--r);cursor:pointer;display:flex;gap:4px;align-items:center"><input type="checkbox" class="s-rmfile" value="${i}" style="width:auto"> 삭제</label></div>`).join("")}<input id="s-files" type="file" multiple>`;
+const assignFields=a=>`<label>과목</label><input id="s-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="s-title" value="${esc(a.title||"")}"><label>안내</label><textarea id="s-desc" style="min-height:140px">${esc(a.desc||"")}</textarea><div class="flex"><div><label>학년</label><input id="s-grade" type="number" min="1" max="3" value="${a.grade||1}"></div><div><label>반</label><input id="s-classes" placeholder="1, 2, 3 / 전체: 공란" value="${esc((a.classes||[]).join(", "))}"></div></div><label>마감</label><input id="s-dl" type="datetime-local" value="${esc(a.deadline||"")}"><label>링크(선택)</label><input id="s-link" placeholder="https://" value="${esc(a.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(a.files,"s-rmfile")}<input id="s-files" type="file" multiple>`;
 // 과제 첨부: 기존 파일 중 '삭제' 체크 안 한 것 + 새로 고른 파일
-async function readAssignFiles(old=[]){const rm=new Set([...document.querySelectorAll(".s-rmfile:checked")].map(x=>+x.value)),keep=old.filter((_,i)=>!rm.has(i)),fs=[...$("#s-files").files];
- const sum=keep.reduce((t,f)=>t+f.fileData.length*0.75,0)+fs.reduce((t,f)=>t+f.size,0);
- if(sum>7e5){alert(`첨부파일 합계가 ${Math.round(sum/1024)}KB입니다. 700KB 이하로 줄이거나, 큰 파일은 드라이브 링크로 올려 주세요.`);return null}
- const add=await Promise.all(fs.map(f=>new Promise(r=>{const x=new FileReader;x.onload=e=>r({fileName:f.name,fileData:e.target.result});x.readAsDataURL(f)})));
- return keep.concat(add)}
-const assignVals=()=>({subject:$("#s-subj").value.trim(),title:$("#s-title").value.trim(),desc:$("#s-desc").value,grade:+$("#s-grade").value||1,classes:$("#s-classes").value.split(/[,\s]+/).map(Number).filter(Boolean),deadline:$("#s-dl").value,linkUrl:$("#s-link").value.trim()});
+const readAssignFiles=(r,old=[])=>mergeFiles(r,old,"s-rmfile","#s-files");
+const assignVals=r=>({subject:q(r,"#s-subj").value.trim(),title:q(r,"#s-title").value.trim(),desc:q(r,"#s-desc").value,grade:+q(r,"#s-grade").value||1,classes:q(r,"#s-classes").value.split(/[,\s]+/).map(Number).filter(Boolean),deadline:q(r,"#s-dl").value,linkUrl:q(r,"#s-link").value.trim()});
 function subTable(){const f=S.sf,grades=[...new Set(S.submissions.map(s=>s.grade))].filter(Boolean).sort(),classes=[...new Set(S.submissions.filter(s=>!f.g||s.grade==f.g).map(s=>s.classNum))].filter(Boolean).sort((a,b)=>a-b);
 let l=S.submissions.filter(s=>(!f.a||s.assignmentId===f.a)&&(!f.g||s.grade==f.g)&&(!f.c||s.classNum==f.c));
 const srt={sid:(a,b)=>sidKey(a)-sidKey(b)||a.id.localeCompare(b.id),new:(a,b)=>b.id.localeCompare(a.id),old:(a,b)=>a.id.localeCompare(b.id),name:(a,b)=>a.studentName.localeCompare(b.studentName,"ko")};l.sort(srt[f.sort]);
@@ -199,10 +207,14 @@ async pwOk(who){const p=$("#pw-in").value;if(!p)return;
  if(who==="t"){const r=await getDoc(doc(db,"config","admin")),h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
  const s=S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
 logout(){S.user=null;S.pwShow="";S.stq="";clearTimeout(pwTimer);render()},
-async addNotice(){const t=$("#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const x=await readAttach();if(!x)return;await put("notices",{id:uid("n"),title:t,body:$("#n-body").value,createdAt:new Date().toISOString(),...tgtVals(),...x});alert("등록되었습니다.");render()},
-async addAssess(){const t=$("#a-title").value.trim(),d=$("#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach();if(!x)return;await put("assessments",{id:uid("as"),subject:$("#a-subj").value,title:t,date:d,desc:$("#a-desc").value,...tgtVals(),...x});alert("등록되었습니다.");render()},
-async addAssign(){const v=assignVals();if(!v.title)return alert("제목을 입력하세요.");const files=await readAssignFiles();if(!files)return;await put("assignments",{id:uid("assign_"),...v,files,order:S.assignments.length+1,createdAt:today()});alert("등록되었습니다.");render()},
-async saveAssign(id){const v=assignVals();if(!v.title)return alert("제목을 입력하세요.");const a=S.assignments.find(x=>x.id===id),files=await readAssignFiles(a.files||[]);if(!files)return;await setDoc(doc(db,"assignments",id),{...a,...v,files});
+async addNotice(){const r=$("#main"),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const x=await readAttach(r);if(!x)return;await put("notices",{id:uid("n"),title:t,body:q(r,"#n-body").value,createdAt:new Date().toISOString(),...tgtVals(r),...x});alert("등록되었습니다.");render()},
+async saveNotice(id){const r=$("#modal"),n=S.notices.find(x=>x.id===id),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const x=await readAttach(r,n.files);if(!x)return;
+ await setDoc(doc(db,"notices",id),{...n,title:t,body:q(r,"#n-body").value,...tgtVals(r),...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
+async addAssess(){const r=$("#main"),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r);if(!x)return;await put("assessments",{id:uid("as"),subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x});alert("등록되었습니다.");render()},
+async saveAssess(id){const r=$("#modal"),a=S.assessments.find(x=>x.id===id),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r,a.files);if(!x)return;
+ await setDoc(doc(db,"assessments",id),{...a,subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
+async addAssign(){const r=$("#main"),v=assignVals(r);if(!v.title)return alert("제목을 입력하세요.");const files=await readAssignFiles(r);if(!files)return;await put("assignments",{id:uid("assign_"),...v,files,order:S.assignments.length+1,createdAt:today()});alert("등록되었습니다.");render()},
+async saveAssign(id){const r=$("#modal"),v=assignVals(r);if(!v.title)return alert("제목을 입력하세요.");const a=S.assignments.find(x=>x.id===id),files=await readAssignFiles(r,a.files||[]);if(!files)return;await setDoc(doc(db,"assignments",id),{...a,...v,files});
  // 과제 제목이 바뀌면 제출물에 저장된 과제명도 함께 갱신
  if(a.title!==v.title)await batchPut("submissions",S.submissions.filter(s=>s.assignmentId===id).map(s=>({id:s.id,assignmentTitle:v.title})));closeModal()},
 async doSubmit(id){const a=S.assignments.find(x=>x.id===id),f=$("#u-file").files[0];let fileName="",fileData="";
@@ -230,6 +242,7 @@ if(d.go){S.page=d.go;render()}
 else if(d.ym){const[y,m]=S.ym.split("-").map(Number),n=new Date(y,m-1+ +d.ym,1);S.ym=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0");render()}
 else if(d.del){e.preventDefault();const[c,id]=d.del.split(":");del(c,id)}
 else if(d.open)openAssign(d.open);else if(d.view)viewSub(d.view);
+else if(d.notice&&T())editNotice(d.notice);else if(d.assess&&T())editAssess(d.assess);
 else if(d.notice){const n=S.notices.find(x=>x.id===d.notice);modal(`<span class="tag">${tgt(n)}</span><h2 style="margin-top:6px">${esc(n.title)}</h2><p class="sub">${n.createdAt.slice(0,10)}</p><div class="big">${esc(n.body)}</div><div style="margin-top:12px">${attachView(n)}</div>`)}
 else if(d.assess){const a=S.assessments.find(x=>x.id===d.assess);modal(`<span class="tag r">${dday(a.date)}</span> <span class="tag b">${esc(a.subject)}</span><h2 style="margin-top:6px">${esc(a.title)}</h2><p class="sub">실시일 ${a.date}</p><div class="big">${esc(a.desc)}</div><div style="margin-top:12px">${attachView(a)}</div>`)}
 else if(d.reply){put("counsel",{id:d.reply,reply:$("#r-"+d.reply).value})}
