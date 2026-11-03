@@ -45,6 +45,30 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .big img{max-width:100%;border-radius:10px;margin-top:10px}
 .pwv{font-family:ui-monospace,Consolas,monospace;font-weight:700;letter-spacing:2px}.pwv.on{background:#fdf0cd;color:#8a6200;padding:2px 8px;border-radius:6px;font-size:16px}
 tr.hit td{background:#fbf7ea}
+.cal i.nt{background:#e7efe9;color:var(--g);cursor:pointer}
+.st-cls{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;background:#fff}
+.st-cls h4{margin:0 0 8px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bar{flex:1;min-width:80px;height:8px;border-radius:99px;background:#fbe1da;overflow:hidden}.bar i{display:block;height:100%;background:var(--g2)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}.chip{all:unset;font-size:13px;padding:2px 9px;border-radius:99px;cursor:default}
+.chip.ok{background:#e7efe9;color:var(--g);cursor:pointer}.chip.ok:hover{background:#d3e4d9}.chip.no{background:#fbe1da;color:var(--r)}.chip.late{background:#fdf0cd;color:#8a6200;cursor:pointer}
+.vt{margin:36px 0 8px;text-align:center;font-size:13px;color:var(--mute)}.vt button{all:unset;cursor:pointer;padding:4px 12px;border:1px solid var(--line);border-radius:99px;margin:0 3px;background:#fff}.vt button.on{background:var(--g);color:#fff;border-color:var(--g)}
+.navs{display:flex;flex-direction:column;gap:4px}
+/* 모바일 화면: 접속 기기 폭(820px 이하)에 따라 자동 적용, 화면 하단 버튼으로 직접 고를 수도 있음 */
+html.mob body{flex-direction:column}
+html.mob aside{width:auto;height:auto;position:sticky;top:0;z-index:40;padding:10px 12px 8px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 10px}
+html.mob aside h1{font-size:19px;margin:0}html.mob aside small{margin:0;font-size:12px}
+html.mob .navs{order:3;width:100%;flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:2px;scrollbar-width:none}
+html.mob aside button.nav{padding:6px 11px;white-space:nowrap;font-size:14px}
+html.mob .who{margin:0 0 0 auto;padding:4px 8px;display:flex;gap:8px;align-items:center;font-size:12px}html.mob .who br{display:none}html.mob .who .btn{margin:0!important}
+html.mob main{padding:16px 14px;max-width:none}html.mob h2{font-size:21px}
+html.mob .grid,html.mob .g2{grid-template-columns:minmax(0,1fr)}html.mob .span2,html.mob .full{grid-column:auto}
+html.mob .card{padding:16px}html.mob .card h3{flex-wrap:wrap}
+html.mob .flex{flex-wrap:wrap}html.mob .flex>div{min-width:90px}
+html.mob .cal{gap:2px;font-size:12px}html.mob .cal div{min-height:46px;padding:2px 3px}html.mob .cal i{font-size:10px;padding:0 2px}
+html.mob table{display:block;overflow-x:auto;white-space:nowrap}
+html.mob .chk{grid-template-columns:1fr 1fr}
+html.mob .mb{padding:8px}html.mob .md{padding:20px 16px}html.mob .login{margin:6vh auto}
+html.mob .big{font-size:15px;padding:14px}
 @media(max-width:1100px){.grid,.g2{grid-template-columns:1fr}.span2{grid-column:auto}aside{width:190px}main{padding:20px}}
 </style>
 </head>
@@ -57,7 +81,7 @@ import {getFirestore,collection,doc,setDoc,deleteDoc,getDoc,onSnapshot,writeBatc
 // 기존 과제 제출 웹앱과 같은 Firebase 프로젝트 (students / assignments / submissions 그대로 연동)
 const db=getFirestore(initializeApp({apiKey:"AIzaSyBdyDgmPFg-Py1ej87klSWqXB8TC5yixkU",authDomain:"assignment-submission-hs.firebaseapp.com",projectId:"assignment-submission-hs",storageBucket:"assignment-submission-hs.firebasestorage.app",messagingSenderId:"702547388370",appId:"1:702547388370:web:f47dc11400725b67324a0b"}));
 const COLS=["students","assignments","submissions","notices","assessments","board","counsel","schedule","meals"];
-const S={user:null,page:"home",ym:new Date().toISOString().slice(0,7),mealDate:new Date().toISOString().slice(0,10),sf:{a:"",g:"",c:"",sort:"sid"},asort:(()=>{try{return localStorage.getItem("asort")||"dl"}catch(e){return "dl"}})(),stq:"",pwShow:""};let pwTimer=0;COLS.forEach(c=>S[c]=[]);
+const S={user:null,page:"home",ym:new Date().toISOString().slice(0,7),mealDate:new Date().toISOString().slice(0,10),sf:{a:"",g:"",c:"",sort:"sid"},asort:(()=>{try{return localStorage.getItem("asort")||"dl"}catch(e){return "dl"}})(),stq:"",pwShow:"",stat:"",statCls:""};let pwTimer=0;COLS.forEach(c=>S[c]=[]);
 const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)},T=()=>S.user?.role==="teacher",st=()=>S.user?.data;
 const put=(c,o)=>setDoc(doc(db,c,o.id),o,{merge:true});
@@ -73,6 +97,10 @@ const tgt=o=>(o.studentId?`${o.studentId} 개인`:o.grade?`${o.grade}학년${o.c
 // 같은 id의 입력란이 본문 작성란과 수정 팝업에 동시에 있을 수 있으므로, 읽을 때는 항상 범위(r)를 지정
 const q=(r,s)=>r.querySelector(s);
 const tgtFields=(o={})=>`<div class="flex"><div><label>학년</label><input id="f-grade" type="number" min="0" max="3" placeholder="전체: 0" value="${o.grade||""}"></div><div><label>반</label><input id="f-class" type="number" min="0" placeholder="전체: 0" value="${o.classNum||""}"></div><div><label>학번(선택)</label><input id="f-sid" placeholder="예: 10101" value="${esc(o.studentId||"")}"></div></div>`;
+// 공지 일정(선택): 시작일 + 종료일(하루짜리면 비움) → 홈 달력에 표시
+const ndateFields=(o={})=>`<div class="flex"><div><label>(선택)일정 시작일</label><input id="n-date" type="date" value="${esc(o.date||"")}"></div><div><label>종료일</label><input id="n-end" type="date" value="${esc(o.endDate||"")}"></div></div>`;
+function ndateVals(r){const d=q(r,"#n-date").value,e=q(r,"#n-end").value;if(e&&!d){alert("종료일만 넣을 수는 없습니다. 일정 날짜를 먼저 넣어 주세요.");return null}if(d&&e&&e<d){alert("종료일이 일정 날짜보다 빠릅니다.");return null}return {date:d,endDate:e&&e!==d?e:""}}
+const nRange=n=>n.date?(n.endDate?`${n.date.slice(5).replace("-","/")}~${n.endDate.slice(5).replace("-","/")}`:n.date.slice(5).replace("-","/")):"";
 const tgtVals=r=>({grade:+q(r,"#f-grade").value||0,classNum:+q(r,"#f-class").value||0,studentId:q(r,"#f-sid").value.trim()});
 // 과제 정렬: 기본은 마감 임박순(마감 없는 '상시' 과제는 맨 뒤)
 const dlKey=a=>a.deadline||"9999";
@@ -95,40 +123,41 @@ const sidKey=s=>(+s.grade||0)*1e4+(+s.classNum||0)*100+(+s.num||0);
 const fmtDl=d=>d?esc(d.replace("T"," "))+" 마감":"상시";
 const RESET=[["schedule","학사일정"],["meals","급식"],["students","학생 명단"],["notices","공지사항"],["assessments","수행평가"],["assignments","과제"],["submissions","제출물"],["board","방명록"],["counsel","상담 신청"]];
 const NAV=[["home","🏠 홈"],["notice","📢 공지사항"],["assess","📝 수행평가"],["assign","📥 과제 제출"],["board","💬 방명록"],["counsel","🤝 상담 신청"]];
-function side(){$("#side").innerHTML=`<h1>신현준T</h1><small>교과 통합관리</small>`+(S.user?NAV.concat(T()?[["admin","⚙️ 관리"]]:[["settings","🔒 설정"]]).map(([k,v])=>`<button class="nav ${S.page===k?"on":""}" data-go="${k}">${v}</button>`).join("")+`<div class="who"><b>${T()?"교사":esc(st().name)}</b><br><span style="color:#a9c7ba">${T()?"관리자 모드":`${st().grade}학년 ${st().classNum}반 ${st().num}번`}</span><br><button class="btn s o" style="margin-top:8px" data-act="logout">로그아웃</button></div>`:"")}
-function render(){side();const m=$("#main");if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button></div>`;setTimeout(()=>$("#login-id")?.focus(),30);return}
-m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]();if(S.page==="admin"){filterRoster();paintPw()}}
+function side(){$("#side").innerHTML=`<h1>신현준T</h1><small>교과 통합관리</small>`+(S.user?`<nav class="navs">`+NAV.concat(T()?[["admin","⚙️ 관리"]]:[["settings","🔒 설정"]]).map(([k,v])=>`<button class="nav ${S.page===k?"on":""}" data-go="${k}">${v}</button>`).join("")+`</nav><div class="who"><b>${T()?"교사":esc(st().name)}</b><br><span style="color:#a9c7ba">${T()?"관리자 모드":`${st().grade}학년 ${st().classNum}반 ${st().num}번`}</span><br><button class="btn s o" style="margin-top:8px" data-act="logout">로그아웃</button></div>`:"")}
+function render(){side();const m=$("#main");if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button></div>`+viewBar();setTimeout(()=>$("#login-id")?.focus(),30);return}
+m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()+viewBar();if(S.page==="admin"){filterRoster();paintPw()}}
 
 // ───── 홈
 function monthCal(){const[y,mo]=S.ym.split("-").map(Number),first=new Date(y,mo-1,1).getDay(),n=new Date(y,mo,0).getDate();let h=["일","월","화","수","목","금","토"].map(d=>`<div class="h">${d}</div>`).join("")+"<div></div>".repeat(first);
-for(let d=1;d<=n;d++){const ds=`${S.ym}-${String(d).padStart(2,"0")}`;h+=`<div class="${ds===today()?"t":""}"><b>${d}</b>${S.schedule.filter(e=>e.date===ds).map(e=>`<i title="${esc(e.name)}">${esc(e.name)}</i>`).join("")}${S.assessments.filter(mine).filter(a=>a.date===ds).map(a=>`<i class="as" data-assess="${a.id}" title="수행평가: ${esc(a.title)}">📝 ${esc(a.title)}</i>`).join("")}${myAssigns().filter(a=>a.deadline?.slice(0,10)===ds).map(a=>`<i class="dl" data-open="${a.id}" title="과제 마감: ${esc(a.title)}">📥 ${esc(a.title)}</i>`).join("")}</div>`}return h}
+for(let d=1;d<=n;d++){const ds=`${S.ym}-${String(d).padStart(2,"0")}`;h+=`<div class="${ds===today()?"t":""}"><b>${d}</b>${S.schedule.filter(e=>e.date===ds).map(e=>`<i title="${esc(e.name)}">${esc(e.name)}</i>`).join("")}${S.assessments.filter(mine).filter(a=>a.date===ds).map(a=>`<i class="as" data-assess="${a.id}" title="수행평가: ${esc(a.title)}">📝 ${esc(a.title)}</i>`).join("")}${myAssigns().filter(a=>a.deadline?.slice(0,10)===ds).map(a=>`<i class="dl" data-open="${a.id}" title="과제 마감: ${esc(a.title)}">📥 ${esc(a.title)}</i>`).join("")}${S.notices.filter(mine).filter(n=>n.date&&n.date<=ds&&ds<=(n.endDate||n.date)).map(n=>`<i class="nt" data-notice="${n.id}" title="공지: ${esc(n.title)}">📢 ${esc(n.title)}</i>`).join("")}</div>`}return h}
 function home(){const meal=S.meals.filter(x=>x.date===S.mealDate).sort((a,b)=>"조중석".indexOf((a.type||"중")[0])-"조중석".indexOf((b.type||"중")[0])),nt=S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,5),as=S.assessments.filter(mine).filter(a=>a.date>=today()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
 const due=myAssigns().filter(a=>!a.deadline||a.deadline.slice(0,10)>=today()).slice(0,5);
 return `<h2>안녕하세요${T()?", 선생님":", "+esc(st().name)+" 학생"} 👋</h2><p class="sub">${today()} · 오늘의 학교 소식</p><div class="grid">
-<div class="card span2"><h3>📅 학사일정 <span class="flex"><button class="btn s o" data-ym="-1">◀</button><b>${S.ym}</b><button class="btn s o" data-ym="1">▶</button></span></h3><div class="cal">${monthCal()}</div><div class="legend"><span style="--c:#dfe9f7">학사일정</span><span style="--c:#fbe1da">수행평가</span><span style="--c:#fdf0cd">과제 마감</span></div></div>
+<div class="card span2"><h3>📅 학사일정 <span class="flex"><button class="btn s o" data-ym="-1">◀</button><b>${S.ym}</b><button class="btn s o" data-ym="1">▶</button></span></h3><div class="cal">${monthCal()}</div><div class="legend"><span style="--c:#dfe9f7">학사일정</span><span style="--c:#fbe1da">수행평가</span><span style="--c:#fdf0cd">과제 마감</span><span style="--c:#e7efe9">공지 일정</span></div></div>
 <div class="card"><h3>🍚 급식 <input type="date" id="mealDate" value="${S.mealDate}" style="width:auto;padding:3px 8px"></h3><div class="meal">${meal.length?meal.map(x=>`<span class="tag y">${esc(x.type||"중식")}</span>\n${esc(x.menu)}`).join("\n\n"):'<span class="mute">등록된 급식 정보가 없습니다.</span>'}</div></div>
-<div class="card"><h3>📢 공지사항 <button class="btn s o" data-go="notice">전체</button></h3>${nt.map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <button class="link" data-notice="${n.id}">${esc(n.title)}</button>${clip(n)}<div class="mute">${n.createdAt.slice(0,10)}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
+<div class="card"><h3>📢 공지사항 <button class="btn s o" data-go="notice">전체</button></h3>${nt.map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <button class="link" data-notice="${n.id}">${esc(n.title)}</button>${clip(n)}${n.date?` <span class="tag y">📅 ${nRange(n)}</span>`:""}<div class="mute">${n.createdAt.slice(0,10)}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
 <div class="card"><h3>📝 수행평가 안내 <button class="btn s o" data-go="assess">전체</button></h3>${as.map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <button class="link" data-assess="${a.id}">${esc(a.title)}</button>${clip(a)}<div class="mute">${esc(a.subject)} · ${a.date}</div></div>`).join("")||'<span class="mute">예정된 수행평가가 없습니다.</span>'}</div>
 <div class="card"><h3>📥 과제 <span class="flex">${asortSel()}<button class="btn s o" data-go="assign">전체</button></span></h3>${due.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag y">${a.deadline?dday(a.deadline.slice(0,10)):"상시"}</span><div class="mute">${esc(a.subject||"")}</div></div>`).join("")||'<span class="mute">진행 중인 과제가 없습니다.</span>'}</div></div>`}
 
 // ───── 공지 / 수행평가
-function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="row"><span class="tag">${tgt(n)}</span> <button class="link" data-notice="${n.id}">${esc(n.title)}</button> ${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}<div style="white-space:pre-line">${esc(n.body)}</div>${attachView(n)}<div class="mute">${n.createdAt.slice(0,10)}${n.editedAt?` · ${n.editedAt.slice(0,10)} 수정`:""}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
-${T()?`<div class="card"><h3>새 공지 작성</h3><label>제목</label><input id="n-title"><label>내용</label><textarea id="n-body"></textarea>${attachFields()}${tgtFields()}<br><button class="btn" data-act="addNotice">등록</button></div>`:""}</div>`}
+function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="row"><span class="tag">${tgt(n)}</span>${n.date?` <span class="tag y">📅 ${nRange(n)}</span>`:""} <button class="link" data-notice="${n.id}">${esc(n.title)}</button> ${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}<div style="white-space:pre-line">${esc(n.body)}</div>${attachView(n)}<div class="mute">${n.createdAt.slice(0,10)}${n.editedAt?` · ${n.editedAt.slice(0,10)} 수정`:""}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
+${T()?`<div class="card"><h3>새 공지 작성</h3><label>제목</label><input id="n-title"><label>내용</label><textarea id="n-body"></textarea>${attachFields()}${tgtFields()}${ndateFields()}<br><button class="btn" data-act="addNotice">등록</button></div>`:""}</div>`}
 function assess(){return `<h2>수행평가 안내</h2><p class="sub">일정과 평가 기준을 확인하세요.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.assessments.filter(mine).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <button class="link" data-assess="${a.id}">${esc(a.title)}</button> <span class="tag b">${esc(a.subject)}</span> <span class="tag">${tgt(a)}</span> ${T()?`<button class="btn s d" data-del="assessments:${a.id}">삭제</button>`:""}<div class="mute">${a.date}</div><div style="white-space:pre-line">${esc(a.desc)}</div>${attachView(a)}</div>`).join("")||'<span class="mute">등록된 수행평가가 없습니다.</span>'}</div>
 ${T()?`<div class="card"><h3>수행평가 등록</h3><label>과목</label><input id="a-subj"><label>제목</label><input id="a-title"><label>평가 기준·유의사항</label><textarea id="a-desc"></textarea>${attachFields()}${tgtFields()}<label>실시일</label><input id="a-date" type="date"><br><br><button class="btn" data-act="addAssess">등록</button></div>`:""}</div>`}
 
 // 교사용 수정 팝업 (과제 수정과 같은 방식)
 function editNotice(id){const n=S.notices.find(x=>x.id===id);if(!n)return;
- modal(`<h2>공지사항 수정</h2><label>제목</label><input id="n-title" value="${esc(n.title)}"><label>내용</label><textarea id="n-body" style="min-height:160px">${esc(n.body)}</textarea>${attachFields(n)}${tgtFields(n)}<br><div class="flex"><button class="btn" data-act="saveNotice" data-id="${id}">저장</button><button class="btn d" data-del="notices:${id}">공지 삭제</button></div>`)}
+ modal(`<h2>공지사항 수정</h2><label>제목</label><input id="n-title" value="${esc(n.title)}"><label>내용</label><textarea id="n-body" style="min-height:160px">${esc(n.body)}</textarea>${attachFields(n)}${tgtFields(n)}${ndateFields(n)}<br><div class="flex"><button class="btn" data-act="saveNotice" data-id="${id}">저장</button><button class="btn d" data-del="notices:${id}">공지 삭제</button></div>`)}
 function editAssess(id){const a=S.assessments.find(x=>x.id===id);if(!a)return;
  modal(`<h2>수행평가 수정</h2><label>과목</label><input id="a-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="a-title" value="${esc(a.title)}"><label>평가 기준·유의사항</label><textarea id="a-desc" style="min-height:160px">${esc(a.desc||"")}</textarea>${attachFields(a)}${tgtFields(a)}<label>실시일</label><input id="a-date" type="date" value="${esc(a.date)}"><br><br><div class="flex"><button class="btn" data-act="saveAssess" data-id="${id}">저장</button><button class="btn d" data-del="assessments:${id}">수행평가 삭제</button></div>`)}
 
 // ───── 과제 제출
 function assign(){const as=myAssigns(),cnt=id=>new Set(S.submissions.filter(s=>s.assignmentId===id).map(s=>s.studentId)).size;
-const list=`<div class="card"><h3>과제 목록 <span class="flex"><span class="mute">제목을 누르면 ${T()?"수정":"상세 보기·제출"}</span>${asortSel()}</span></h3>${as.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag b">${esc(a.subject||"")}</span> <span class="tag y">${fmtDl(a.deadline)}</span> ${T()?`<span class="tag">${a.grade}학년 ${a.classes?.length?a.classes.join(",")+"반":"전체"}</span> <span class="mute">제출 ${cnt(a.id)}명</span>`:S.submissions.some(s=>s.assignmentId===a.id&&s.studentId===st().studentId)?'<span class="tag">제출 완료</span>':'<span class="tag r">미제출</span>'}</div>`).join("")||'<span class="mute">과제가 없습니다.</span>'}</div>`;
+const list=`<div class="card"><h3>과제 목록 <span class="flex"><span class="mute">제목을 누르면 ${T()?"수정":"상세 보기·제출"}</span>${asortSel()}</span></h3>${as.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag b">${esc(a.subject||"")}</span> <span class="tag y">${fmtDl(a.deadline)}</span> ${T()?`<span class="tag">${a.grade}학년 ${a.classes?.length?a.classes.join(",")+"반":"전체"}</span> <button class="btn s o" data-stat="${a.id}">제출 ${cnt(a.id)}/${targets(a).length}명 · 현황</button>`:S.submissions.some(s=>s.assignmentId===a.id&&s.studentId===st().studentId)?'<span class="tag">제출 완료</span>':'<span class="tag r">미제출</span>'}</div>`).join("")||'<span class="mute">과제가 없습니다.</span>'}</div>`;
 if(!T())return `<h2>과제 제출</h2><p class="sub">과제 제목을 눌러 상세 내용을 보고 제출하세요. 마감 후 제출은 '지각'으로 표시됩니다.</p>${list}`;
 return `<h2>과제 제출</h2><p class="sub">과제를 만들고 제출물을 확인합니다.</p><div class="g2">${list}
 <div class="card"><h3>과제 만들기</h3>${assignFields({grade:1})}<br><button class="btn" data-act="addAssign">등록</button></div>
+<div class="card full" id="stat-card">${statCard()}</div>
 <div class="card full">${subTable()}</div></div>`}
 const assignFields=a=>`<label>과목</label><input id="s-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="s-title" value="${esc(a.title||"")}"><label>안내</label><textarea id="s-desc" style="min-height:140px">${esc(a.desc||"")}</textarea><div class="flex"><div><label>학년</label><input id="s-grade" type="number" min="1" max="3" value="${a.grade||1}"></div><div><label>반</label><input id="s-classes" placeholder="1, 2, 3 / 전체: 공란" value="${esc((a.classes||[]).join(", "))}"></div></div><label>마감</label><input id="s-dl" type="datetime-local" value="${esc(a.deadline||"")}"><label>링크(선택)</label><input id="s-link" placeholder="https://" value="${esc(a.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(a.files,"s-rmfile")}<input id="s-files" type="file" multiple>`;
 // 과제 첨부: 기존 파일 중 '삭제' 체크 안 한 것 + 새로 고른 파일
@@ -156,6 +185,32 @@ modal(`<span class="tag">${esc(s.studentId)}</span> ${s.isLate?'<span class="tag
 <div class="big">${esc(s.content||"작성한 내용이 없습니다.")}${s.fileData?.startsWith("data:image")?`<img src="${s.fileData}">`:""}</div>
 <div class="flex" style="margin-top:14px">${s.fileData?`<a class="btn o" href="${s.fileData}" download="${esc(s.fileName)}">📎 ${esc(s.fileName)} 내려받기</a>`:""}${s.webUrl?`<a class="btn o" href="${esc(s.webUrl)}" target="_blank">🔗 링크 열기</a>`:""}</div>`)}
 
+// ───── 과제별 제출/미제출 현황 (학생 명단 기준)
+const targets=a=>S.students.filter(s=>s.grade==a.grade&&(!a.classes?.length||a.classes.map(Number).includes(+s.classNum))).sort((x,y)=>sidKey(x)-sidKey(y));
+function statCard(){const as=myAssigns();if(!as.length)return `<h3>📋 제출 현황</h3><span class="mute">과제가 없습니다.</span>`;
+ const a=as.find(x=>x.id===S.stat)||as[0],tg=targets(a),subs=S.submissions.filter(s=>s.assignmentId===a.id);
+ const last=sid=>subs.filter(s=>s.studentId===sid).sort((x,y)=>y.id.localeCompare(x.id))[0];
+ const classes=[...new Set(tg.map(s=>+s.classNum))].sort((x,y)=>x-y),cls=classes.includes(+S.statCls)?+S.statCls:0;
+ const done=tg.filter(s=>last(s.studentId)).length;
+ const block=c=>{const l=tg.filter(s=>+s.classNum===c),ok=l.filter(s=>last(s.studentId)),no=l.filter(s=>!last(s.studentId)),pct=l.length?Math.round(ok.length/l.length*100):0;
+  return `<div class="st-cls"><h4>${a.grade}학년 ${c}반 <span class="mute">제출 ${ok.length} / ${l.length}명</span><span class="bar"><i style="width:${pct}%"></i></span><b>${pct}%</b>${no.length?`<button class="btn s o" data-copyno="${c}">미제출 명단 복사</button>`:""}</h4>
+  <div class="mute">미제출 ${no.length}명</div><div class="chips">${no.map(s=>`<span class="chip no">${s.num}번 ${esc(s.name)}</span>`).join("")||'<span class="mute">모두 제출했습니다 🎉</span>'}</div>
+  <div class="mute">제출 ${ok.length}명 <span style="font-size:12px">(이름을 누르면 제출물 보기${ok.some(s=>last(s.studentId).isLate)?" · 노란색은 지각":""})</span></div><div class="chips">${ok.map(s=>{const x=last(s.studentId);return `<button class="chip ${x.isLate?"late":"ok"}" data-view="${x.id}">${s.num}번 ${esc(s.name)}</button>`}).join("")}</div></div>`};
+ return `<h3>📋 제출 현황 <span class="flex"><select data-stat-sel="1">${as.map(x=>`<option value="${x.id}" ${x.id===a.id?"selected":""}>${esc(x.title)}</option>`).join("")}</select><select data-stat-cls="1"><option value="0">전체 반</option>${classes.map(c=>`<option value="${c}" ${c===cls?"selected":""}>${c}반</option>`).join("")}</select></span></h3>
+ <div class="mute">${a.grade}학년 ${a.classes?.length?a.classes.join(", ")+"반":"전체 반"} · 대상 ${tg.length}명 중 <b style="color:var(--g)">${done}명 제출</b>, <b style="color:var(--r)">${tg.length-done}명 미제출</b> · ${fmtDl(a.deadline)}</div>
+ ${tg.length?(cls?[cls]:classes).map(block).join(""):'<p class="mute">학생 명단에 이 과제 대상 학생이 없습니다. 관리 탭에서 명단을 확인해 주세요.</p>'}`}
+function copyMissing(c){const as=myAssigns(),a=as.find(x=>x.id===S.stat)||as[0];const no=targets(a).filter(s=>+s.classNum===+c&&!S.submissions.some(x=>x.assignmentId===a.id&&x.studentId===s.studentId));
+ const t=`[${a.title}] ${a.grade}학년 ${c}반 미제출 ${no.length}명\n${no.map(s=>`${s.num}번 ${s.name}`).join(", ")}`;
+ (navigator.clipboard?.writeText(t)||Promise.reject()).then(()=>alert("복사했습니다.\n\n"+t),()=>prompt("아래 내용을 복사하세요.",t))}
+
+// ───── 화면 비율: 자동(기기 폭) / PC 버전 / 모바일 버전
+const VIEWS=[["auto","자동"],["pc","PC 버전"],["mob","모바일 버전"]];
+function getView(){try{return localStorage.getItem("view")||"auto"}catch(e){return "auto"}}
+function applyView(){const v=getView(),vp=$('meta[name=viewport]');vp.content=v==="pc"?"width=1280":"width=device-width,initial-scale=1";
+ const mob=v==="mob"||(v==="auto"&&matchMedia("(max-width:820px)").matches);document.documentElement.classList.toggle("mob",mob)}
+const viewBar=()=>`<div class="vt">화면 보기 ${VIEWS.map(([k,t])=>`<button class="${getView()===k?"on":""}" data-view-mode="${k}">${t}</button>`).join("")}</div>`;
+applyView();addEventListener("resize",()=>{if(getView()==="auto")applyView()});
+
 // ───── 방명록 / 상담 / 설정
 function board(){return `<h2>방명록</h2><p class="sub">자유롭게 남겨 주세요. 서로 존중하는 말을 써 주세요.</p><div class="card"><div class="flex"><input id="b-text" placeholder="한마디 남기기"><button class="btn" data-act="addBoard">남기기</button></div></div><div class="card" style="margin-top:16px">${[...S.board].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(b=>`<div class="row"><b>${esc(b.name)}</b> <span class="mute">${new Date(b.createdAt).toLocaleString("ko-KR")}</span> ${T()||b.studentId===st()?.studentId?`<a href="#" data-del="board:${b.id}">삭제</a>`:""}<div>${esc(b.text)}</div></div>`).join("")||'<span class="mute">첫 글을 남겨 보세요.</span>'}</div>`}
 function counsel(){const l=S.counsel.filter(c=>T()||c.studentId===st().studentId).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
@@ -166,7 +221,12 @@ function settings(){return `<h2>설정</h2><p class="sub">처음 비밀번호는
 // ───── 교사 관리
 function admin(){const c=JSON.parse(localStorage.getItem("neis")||"{}");
 return `<h2>관리</h2><p class="sub">NEIS 연동 · 파일 업로드 · 직접 입력 중 편한 방법을 사용하세요.</p><div class="g2">
-<div class="col"><div class="card"><h3>① NEIS 동기화 (학사일정·급식)</h3><p class="mute">NEIS 교육정보 개방포털(open.neis.go.kr)에서 인증키를 발급받고, 시도교육청코드/표준학교코드를 입력하세요. 이 설정은 이 브라우저에만 저장됩니다.</p><label>인증키</label><input id="k" value="${esc(c.k||"")}"><div class="flex"><div><label>시도교육청코드 (예: J10)</label><input id="o" value="${esc(c.o||"")}"></div><div><label>표준학교코드</label><input id="sc" value="${esc(c.sc||"")}"></div></div><br><button class="btn" data-act="neis">${S.ym} 학사일정 + 급식 가져오기</button> <span id="neis-msg" class="mute"></span></div>
+<div class="col"><div class="card"><h3>① NEIS 동기화 (학사일정·급식)</h3><p class="mute">NEIS 교육정보 개방포털(open.neis.go.kr)에서 인증키를 발급받고, 시도교육청코드/표준학교코드를 입력하세요. 이 설정은 이 브라우저에만 저장됩니다.</p><label>인증키</label><input id="k" value="${esc(c.k||"")}"><div class="flex"><div><label>시도교육청코드 (예: J10)</label><input id="o" value="${esc(c.o||"")}"></div><div><label>표준학교코드</label><input id="sc" value="${esc(c.sc||"")}"></div></div>
+<label>가져올 기간</label><div class="flex"><select id="nz-mode" style="flex:0 0 110px"><option value="sem" ${c.mode!=="mon"?"selected":""}>학기별</option><option value="mon" ${c.mode==="mon"?"selected":""}>월별</option></select>
+<span id="nz-sem" class="flex" style="flex:1;${c.mode==="mon"?"display:none":""}"><select id="nz-year">${yearOpts(c.year)}</select><select id="nz-term"><option value="1" ${curTerm(c)==1?"selected":""}>1학기 (3~8월)</option><option value="2" ${curTerm(c)==2?"selected":""}>2학기 (9월~다음 해 2월)</option></select></span>
+<span id="nz-mon" class="flex" style="flex:1;${c.mode==="mon"?"":"display:none"}"><input id="nz-month" type="month" value="${esc(c.month||S.ym)}"></span></div>
+<div class="chk" style="grid-template-columns:repeat(2,auto);justify-content:start;gap:16px"><label><input type="checkbox" id="nz-s" ${c.s===false?"":"checked"}> 학사일정</label><label><input type="checkbox" id="nz-m" ${c.m===false?"":"checked"}> 급식</label></div>
+<div class="mute" id="nz-range">${neisRangeText(c)}</div><br><button class="btn" data-act="neis">NEIS에서 가져오기</button> <div id="neis-msg" class="mute" style="margin-top:8px"></div></div>
 <div class="card"><h3>② 파일 업로드 (CSV)</h3><label>학사일정 CSV — 날짜,행사명 (예: 2026-11-12,수능)</label><input type="file" accept=".csv,.txt" data-csv="schedule"><label>급식 CSV — 날짜,구분,메뉴(/로 구분)</label><input type="file" accept=".csv,.txt" data-csv="meals"><label>학생 명단 CSV — 학번,이름 (학번 5자리: 학년+반2자리+번호2자리)</label><input type="file" accept=".csv,.txt" data-csv="students"></div>
 <div class="card"><h3>③ 직접 입력</h3><label>학사일정</label><div class="flex"><input id="m-date" type="date" value="${today()}" style="flex:0 0 180px"><input id="m-name" placeholder="행사명"><button class="btn" data-act="addSched">일정 추가</button></div><label>급식</label><div class="flex"><input id="g-date" type="date" value="${today()}"><select id="g-type" style="flex:0 0 100px"><option>조식</option><option selected>중식</option><option>석식</option></select></div><textarea id="g-menu" placeholder="메뉴 (줄바꿈으로 구분)" style="margin-top:8px"></textarea><br><br><button class="btn" data-act="addMeal">급식 저장</button></div>
 </div><div class="col"><div class="card"><h3>학생 명단 (${S.students.length}명)</h3><div class="flex"><input id="st-id" placeholder="학번 10101"><input id="st-name" placeholder="이름"><button class="btn" data-act="addStudent">추가</button></div>
@@ -189,13 +249,33 @@ const mkStu=(id,name)=>({id,studentId:id,grade:+id[0],classNum:+id.slice(1,3),nu
 const csv=t=>t.replace(/^\uFEFF/,"").split(/\r?\n/).map(l=>l.split(",").map(x=>x.trim())).filter(r=>r[0]);
 async function batchPut(c,arr){for(let i=0;i<arr.length;i+=400){const b=writeBatch(db);arr.slice(i,i+400).forEach(o=>b.set(doc(db,c,o.id),o,{merge:true}));await b.commit()}}
 const ymd=s=>`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6)}`;
-async function neis(){const k=$("#k").value.trim(),o=$("#o").value.trim(),sc=$("#sc").value.trim(),msg=$("#neis-msg");localStorage.setItem("neis",JSON.stringify({k,o,sc}));
-const[y,m]=S.ym.split("-"),last=new Date(y,m,0).getDate(),q=`Type=json&pSize=300&KEY=${k}&ATPT_OFCDC_SC_CODE=${o}&SD_SCHUL_CODE=${sc}`;msg.textContent="불러오는 중…";
-try{const a=await(await fetch(`https://open.neis.go.kr/hub/SchoolSchedule?${q}&AA_FROM_YMD=${y}${m}01&AA_TO_YMD=${y}${m}${last}`)).json(),rows=(a.SchoolSchedule?.[1]?.row||[]).filter(r=>r.EVENT_NM&&r.EVENT_NM!=="토요휴업일");
-await batchPut("schedule",rows.map((r,i)=>({id:"n"+r.AA_YMD+"_"+i,date:ymd(r.AA_YMD),name:r.EVENT_NM,src:"neis"})));
-const b=await(await fetch(`https://open.neis.go.kr/hub/mealServiceDietInfo?${q}&MLSV_FROM_YMD=${y}${m}01&MLSV_TO_YMD=${y}${m}${last}`)).json(),mr=b.mealServiceDietInfo?.[1]?.row||[];
-await batchPut("meals",mr.map(r=>({id:"n"+r.MLSV_YMD+r.MMEAL_SC_CODE,date:ymd(r.MLSV_YMD),type:r.MMEAL_SC_NM,menu:r.DDISH_NM.replace(/<br\s*\/?>/g,"\n").replace(/\s*\([\d.,\s]+\)/g,""),src:"neis"})));
-msg.textContent=`완료: 일정 ${rows.length}건, 급식 ${mr.length}건`}catch(e){msg.textContent="실패 — 키/코드를 확인하거나 CSV·직접 입력을 이용하세요."}}
+// NEIS 기간: 1학기 = 3/1~8/31, 2학기 = 9/1~다음 해 2월 말 (학년도 기준)
+const curTerm=c=>c.term||(new Date().getMonth()+1>=3&&new Date().getMonth()+1<=8?1:2);
+const curSchoolYear=()=>{const d=new Date();return d.getMonth()+1<=2?d.getFullYear()-1:d.getFullYear()};
+const yearOpts=sel=>{const y=curSchoolYear(),s=+sel||y;return [y-1,y,y+1].map(v=>`<option value="${v}" ${v===s?"selected":""}>${v}학년도</option>`).join("")};
+function neisRange(c){if(c.mode==="mon"){const[y,m]=(c.month||S.ym).split("-").map(Number),last=new Date(y,m,0).getDate();return [`${y}${String(m).padStart(2,"0")}01`,`${y}${String(m).padStart(2,"0")}${last}`]}
+ const y=+c.year||curSchoolYear();return curTerm(c)==1?[`${y}0301`,`${y}0831`]:[`${y}0901`,`${y+1}02${new Date(y+1,2,0).getDate()}`]}
+const neisRangeText=c=>{const[f,t]=neisRange(c);return `가져올 범위: ${ymd(f)} ~ ${ymd(t)} · 같은 기간의 기존 NEIS 자료는 새 자료로 바뀝니다.`};
+const neisForm=()=>({k:$("#k").value.trim(),o:$("#o").value.trim(),sc:$("#sc").value.trim(),mode:$("#nz-mode").value,year:$("#nz-year").value,term:+$("#nz-term").value,month:$("#nz-month").value,s:$("#nz-s").checked,m:$("#nz-m").checked});
+// 한 번에 최대 1000건씩, 남은 자료가 있으면 다음 쪽(pIndex)을 이어서 받음
+async function neisAll(svc,params){let all=[],i=1,total=Infinity;
+ while(all.length<total&&i<=20){const j=await(await fetch(`https://open.neis.go.kr/hub/${svc}?Type=json&pIndex=${i}&pSize=1000&${params}`)).json();
+  if(!j[svc]){const code=j.RESULT?.CODE||"";if(code==="INFO-200")break;throw new Error(j.RESULT?.MESSAGE||"응답 오류")}
+  total=j[svc][0].head[0].list_total_count;const rows=j[svc][1]?.row||[];all=all.concat(rows);if(!rows.length)break;i++}
+ return all}
+async function neis(){const c=neisForm(),msg=$("#neis-msg");try{localStorage.setItem("neis",JSON.stringify(c))}catch(e){}
+ if(!c.k||!c.o||!c.sc)return msg.textContent="인증키, 시도교육청코드, 표준학교코드를 모두 입력하세요.";if(!c.s&&!c.m)return msg.textContent="학사일정이나 급식 중 하나 이상을 고르세요.";
+ const[f,t]=neisRange(c),base=`KEY=${encodeURIComponent(c.k)}&ATPT_OFCDC_SC_CODE=${encodeURIComponent(c.o)}&SD_SCHUL_CODE=${encodeURIComponent(c.sc)}`,F=ymd(f),Tt=ymd(t),out=[];
+ msg.textContent=`${F} ~ ${Tt} 불러오는 중…`;
+ try{
+  if(c.s){const rows=(await neisAll("SchoolSchedule",`${base}&AA_FROM_YMD=${f}&AA_TO_YMD=${t}`)).filter(r=>r.EVENT_NM&&r.EVENT_NM!=="토요휴업일");
+   // 같은 기간의 예전 NEIS 일정을 지운 뒤 새로 저장 (직접 입력·CSV 일정은 그대로 둠)
+   const old=S.schedule.filter(e=>e.src==="neis"&&e.date>=F&&e.date<=Tt).map(e=>e.id);for(let i=0;i<old.length;i+=400){const b=writeBatch(db);old.slice(i,i+400).forEach(id=>b.delete(doc(db,"schedule",id)));await b.commit()}
+   await batchPut("schedule",rows.map((r,i)=>({id:"n"+r.AA_YMD+"_"+i,date:ymd(r.AA_YMD),name:r.EVENT_NM,src:"neis"})));out.push(`학사일정 ${rows.length}건`)}
+  if(c.m){const mr=await neisAll("mealServiceDietInfo",`${base}&MLSV_FROM_YMD=${f}&MLSV_TO_YMD=${t}`);
+   await batchPut("meals",mr.map(r=>({id:"n"+r.MLSV_YMD+r.MMEAL_SC_CODE,date:ymd(r.MLSV_YMD),type:r.MMEAL_SC_NM,menu:r.DDISH_NM.replace(/<br\s*\/?>/g,"\n").replace(/\s*\([\d.,\s]+\)/g,""),src:"neis"})));out.push(`급식 ${mr.length}건`)}
+  msg.textContent=`완료 (${F} ~ ${Tt}): ${out.join(", ")}`}
+ catch(e){msg.textContent=`실패: ${e.message||"연결 오류"} — 키·코드를 확인하거나 CSV·직접 입력을 이용하세요.`}}
 function enter(user){S.user=user;S.page="home";closeModal();render()}
 const A={
 login(){const v=$("#login-id").value.trim();if(!v)return;
@@ -207,9 +287,9 @@ async pwOk(who){const p=$("#pw-in").value;if(!p)return;
  if(who==="t"){const r=await getDoc(doc(db,"config","admin")),h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
  const s=S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
 logout(){S.user=null;S.pwShow="";S.stq="";clearTimeout(pwTimer);render()},
-async addNotice(){const r=$("#main"),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const x=await readAttach(r);if(!x)return;await put("notices",{id:uid("n"),title:t,body:q(r,"#n-body").value,createdAt:new Date().toISOString(),...tgtVals(r),...x});alert("등록되었습니다.");render()},
-async saveNotice(id){const r=$("#modal"),n=S.notices.find(x=>x.id===id),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const x=await readAttach(r,n.files);if(!x)return;
- await setDoc(doc(db,"notices",id),{...n,title:t,body:q(r,"#n-body").value,...tgtVals(r),...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
+async addNotice(){const r=$("#main"),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r);if(!x)return;await put("notices",{id:uid("n"),title:t,body:q(r,"#n-body").value,createdAt:new Date().toISOString(),...tgtVals(r),...nd,...x});alert("등록되었습니다.");render()},
+async saveNotice(id){const r=$("#modal"),n=S.notices.find(x=>x.id===id),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r,n.files);if(!x)return;
+ await setDoc(doc(db,"notices",id),{...n,title:t,body:q(r,"#n-body").value,...tgtVals(r),...nd,...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
 async addAssess(){const r=$("#main"),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r);if(!x)return;await put("assessments",{id:uid("as"),subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x});alert("등록되었습니다.");render()},
 async saveAssess(id){const r=$("#modal"),a=S.assessments.find(x=>x.id===id),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r,a.files);if(!x)return;
  await setDoc(doc(db,"assessments",id),{...a,subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
@@ -237,13 +317,16 @@ async doReset(){const ks=[...document.querySelectorAll(".rs:checked")].map(x=>x.
  if(prompt("확인을 위해 '초기화'라고 입력하세요.")!=="초기화")return alert("취소되었습니다.");
  try{for(const k of ks){const ids=S[k].map(x=>x.id);for(let i=0;i<ids.length;i+=400){const b=writeBatch(db);ids.slice(i,i+400).forEach(id=>b.delete(doc(db,k,id)));await b.commit()}}alert(`[${names}] 초기화가 완료되었습니다.`)}catch(e){alert("초기화 중 오류가 발생했습니다.")}}};
 document.addEventListener("click",e=>{if(e.target.dataset?.close)return closeModal();
+if(e.target.closest("[data-view-mode]")){try{localStorage.setItem("view",e.target.closest("[data-view-mode]").dataset.viewMode)}catch(err){}applyView();return render()}
+if(e.target.closest("[data-stat]")){S.stat=e.target.closest("[data-stat]").dataset.stat;S.statCls="";render();return $("#stat-card")?.scrollIntoView({behavior:"smooth"})}
+if(e.target.closest("[data-copyno]"))return copyMissing(e.target.closest("[data-copyno]").dataset.copyno);
 const t=e.target.closest("[data-act],[data-go],[data-ym],[data-del],[data-open],[data-view],[data-reply],[data-pwreset],[data-pwshow],[data-notice],[data-assess]");if(!t)return;const d=t.dataset;
 if(d.go){S.page=d.go;render()}
 else if(d.ym){const[y,m]=S.ym.split("-").map(Number),n=new Date(y,m-1+ +d.ym,1);S.ym=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0");render()}
 else if(d.del){e.preventDefault();const[c,id]=d.del.split(":");del(c,id)}
 else if(d.open)openAssign(d.open);else if(d.view)viewSub(d.view);
 else if(d.notice&&T())editNotice(d.notice);else if(d.assess&&T())editAssess(d.assess);
-else if(d.notice){const n=S.notices.find(x=>x.id===d.notice);modal(`<span class="tag">${tgt(n)}</span><h2 style="margin-top:6px">${esc(n.title)}</h2><p class="sub">${n.createdAt.slice(0,10)}</p><div class="big">${esc(n.body)}</div><div style="margin-top:12px">${attachView(n)}</div>`)}
+else if(d.notice){const n=S.notices.find(x=>x.id===d.notice);modal(`<span class="tag">${tgt(n)}</span><h2 style="margin-top:6px">${esc(n.title)}</h2><p class="sub">${n.date?`📅 일정 ${n.date}${n.endDate?" ~ "+n.endDate:""} · `:""}${n.createdAt.slice(0,10)} 게시</p><div class="big">${esc(n.body)}</div><div style="margin-top:12px">${attachView(n)}</div>`)}
 else if(d.assess){const a=S.assessments.find(x=>x.id===d.assess);modal(`<span class="tag r">${dday(a.date)}</span> <span class="tag b">${esc(a.subject)}</span><h2 style="margin-top:6px">${esc(a.title)}</h2><p class="sub">실시일 ${a.date}</p><div class="big">${esc(a.desc)}</div><div style="margin-top:12px">${attachView(a)}</div>`)}
 else if(d.reply){put("counsel",{id:d.reply,reply:$("#r-"+d.reply).value})}
 else if(d.pwshow)showPw(d.pwshow);
@@ -253,6 +336,9 @@ document.addEventListener("input",e=>{if(e.target.id==="st-q"){S.stq=e.target.va
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&e.target.id==="st-q"){S.stq="";e.target.value="";return filterRoster()}if(e.key==="Escape")closeModal();if(e.key!=="Enter"||e.isComposing)return;if(e.target.id==="login-id")A.login();if(e.target.id==="pw-in")$("#modal [data-act=pwOk]").click()});
 document.addEventListener("change",async e=>{if(e.target.id==="mealDate"){S.mealDate=e.target.value;return render()}
 if(e.target.dataset.asort){S.asort=e.target.value;try{localStorage.setItem("asort",S.asort)}catch(err){}return render()}
+if(e.target.dataset.statSel){S.stat=e.target.value;S.statCls="";return render()}
+if(e.target.dataset.statCls){S.statCls=e.target.value;return render()}
+if(["nz-mode","nz-year","nz-term","nz-month"].includes(e.target.id)){const c=neisForm();$("#nz-sem").style.display=c.mode==="sem"?"":"none";$("#nz-mon").style.display=c.mode==="mon"?"":"none";$("#nz-range").textContent=neisRangeText(c);return}
 if(e.target.dataset.sf){const k=e.target.dataset.sf;S.sf[k]=e.target.value;if(k==="g")S.sf.c="";return render()}
 const k=e.target.dataset.csv;if(!k)return;const rows=csv(await e.target.files[0].text());
 const arr=k==="schedule"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:uid("f"),date:r[0],name:r[1]})):k==="meals"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:"m"+r[0]+(r[1]||"중식"),date:r[0],type:r[1]||"중식",menu:(r[2]||"").split("/").join("\n")})):rows.filter(r=>/^\d{5}$/.test(r[0])).map(r=>mkStu(r[0],r[1]));
