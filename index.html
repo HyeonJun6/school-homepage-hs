@@ -25,6 +25,22 @@ a,.big,.row{overflow-wrap:anywhere}.md input,.md textarea{max-width:100%}
 .card h3{margin:0 0 12px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .span2{grid-column:span 2}.full{grid-column:1/-1}
 .row{padding:10px 0;border-bottom:1px dashed var(--line)}.row:last-child{border:0}
+/* 글 상자: 공지·수행평가·방명록·상담 글을 하나씩 상자로 나눔 */
+.post{background:#fff;border:1px solid var(--line);border-left:5px solid var(--g2);border-radius:12px;padding:12px 16px 10px;margin-bottom:14px;box-shadow:0 1px 3px rgba(60,50,20,.06);overflow-wrap:anywhere}.post:last-child{margin-bottom:0}
+.post.as{border-left-color:var(--r)}.post.bd{border-left-color:var(--y)}.post.cs{border-left-color:var(--b)}
+.post .ph{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.post .ph .btn{margin-left:auto}.post .pb{white-space:pre-line;margin-top:8px;line-height:1.7}.post .pm{margin-top:6px;font-size:13px}
+.plist-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end;margin:-4px 0 12px;font-size:13px}.plist-bar .mute{margin-right:auto}
+/* 긴 글 접기: 8줄까지 보이고 나머지는 '펼쳐서 전체 보기' */
+.fold{position:relative;max-height:calc(1.7em * 8);overflow:hidden}.fold.open{max-height:none}
+.fold.cut:not(.open)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3.2em;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none}
+.fold-btn{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;text-align:center;font-size:13px;font-weight:700;color:var(--g2);padding:7px 0 3px;margin-top:4px;border-top:1px dashed var(--line)}.fold-btn:hover{color:var(--g);text-decoration:underline}
+/* 첨부파일 고르기: 고른 파일 목록 + 하나씩 빼기 */
+.dbst{margin-top:14px;font-size:13px;color:var(--mute);line-height:1.6}.dbst.ok{color:var(--g2)}.dbst.err{background:#fdeee9;border:1px solid #f0b8a8;color:#8a2f1c;border-radius:10px;padding:10px 12px;text-align:left}
+.fp{margin-top:2px}.fp-list:empty{display:none}.fp-list{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+.fp-it{display:flex;align-items:center;gap:8px;background:#f6f4ec;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:14px;min-width:0}.fp-it .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-it.fp-over{background:#fdeee9;border-color:#f0b8a8}.fp-it.fp-over .z{color:var(--r);font-weight:700}
+.fp-rm{all:unset;cursor:pointer;font-size:13px;font-weight:700;color:var(--r);padding:2px 8px;border-radius:6px;white-space:nowrap}.fp-rm:hover{background:#fbdcd3}
+.fp-sum{font-size:13px}.fp-sum.over{color:var(--r);font-weight:700}
 .tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 9px;border-radius:99px;background:#e7efe9;color:var(--g)}
 .tag.y{background:#fdf0cd;color:#8a6200}.tag.r{background:#fbe1da;color:var(--r)}.tag.b{background:#dfe9f7;color:var(--b)}
 input,select,textarea{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%;color:var(--ink)}
@@ -101,7 +117,7 @@ const del=async(c,id)=>{if(!confirm("삭제할까요?"))return;await deleteDoc(d
 const uid=p=>p+Date.now()+Math.random().toString(36).slice(2,5);
 const dday=d=>{const n=Math.round((new Date(d)-new Date(today()))/864e5);return n===0?"D-Day":n>0?"D-"+n:"D+"+-n};
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,"0")).join("");
-const modal=(h,sm)=>{$("#modal").innerHTML=`<div class="mb" data-close="1"><div class="md ${sm?"sm":""}"><button class="x" data-close="1">×</button>${h}</div></div>`;setTimeout(()=>$("#modal input:not([type=file]),#modal textarea")?.focus(),30)};
+const modal=(h,sm)=>{fpClear("modal");$("#modal").innerHTML=`<div class="mb" data-close="1"><div class="md ${sm?"sm":""}"><button class="x" data-close="1">×</button>${h}</div></div>`;paintFP($("#modal"));setTimeout(()=>$("#modal input:not([type=file]),#modal textarea")?.focus(),30)};
 const closeModal=()=>$("#modal").innerHTML="";
 // 대상(학년/반/학생) 필터: 0 또는 공란 = 전체
 const mine=o=>T()||((!o.grade||o.grade==st().grade)&&(!o.classNum||o.classNum==st().classNum)&&(!o.studentId||o.studentId===st().studentId));
@@ -121,11 +137,54 @@ const myAssigns=()=>S.assignments.filter(a=>T()||(a.grade==st().grade&&(!a.class
 const asortSel=()=>`<select data-asort="1" style="width:auto;padding:4px 8px;font-size:13px">${Object.entries(ASORT).map(([k,[t]])=>`<option value="${k}" ${S.asort===k?"selected":""}>${t}</option>`).join("")}</select>`;
 // 공지·수행평가 첨부: 링크 + 여러 파일 (Firestore 문서 한도 때문에 합계 700KB 이하)
 const fileRows=(files,cls)=>(files||[]).map((f,i)=>`<div class="flex" style="margin-bottom:4px"><a href="${f.fileData}" download="${esc(f.fileName)}" style="flex:1">📎 ${esc(f.fileName)}</a><label style="all:unset;font-size:13px;color:var(--r);cursor:pointer;display:flex;gap:4px;align-items:center"><input type="checkbox" class="${cls}" value="${i}" style="width:auto"> 삭제</label></div>`).join("");
-const attachFields=(o={})=>`<label>링크(선택)</label><input id="x-link" placeholder="https://" value="${esc(o.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(o.files,"x-rmfile")}<input id="x-files" type="file" multiple>`;
+const attachFields=(o={})=>`<label>링크(선택)</label><input id="x-link" placeholder="https://" value="${esc(o.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(o.files,"x-rmfile")}${filePick("x-files")}`;
+// ───── 서버(Firebase) 연결 상태: 서버에서 데이터를 받았는지, 실패했다면 이유를 기록해 로그인 화면과 알림창에 보여 줌
+const DB={ok:new Set(),err:null,slow:false};
+function dbWhy(e){const t=String(e?.code||"")+" "+String(e?.message||e||"");
+ if(/resource-exhausted|quota/i.test(t))return "Firebase 무료 사용량(하루 읽기 횟수 등)을 넘었습니다. 한국 시각 오후 4~5시(미국 태평양 자정)에 다시 풀립니다.\n→ Firebase 콘솔 › Firestore › 사용량에서 확인하세요.";
+ if(/permission|insufficient/i.test(t))return "Firestore 보안 규칙이 접근을 막고 있습니다. 처음에 '테스트 모드'로 만들었다면 사용 기한(30일)이 끝났을 수 있습니다.\n→ Firebase 콘솔 › Firestore › 규칙을 확인하세요.";
+ if(/unavailable|offline|network|failed to fetch/i.test(t))return "Firebase 서버에 연결되지 않습니다. 인터넷이 끊겼거나, 학교망·보안 프로그램이 Firebase 접속을 막고 있을 수 있습니다.\n→ 휴대폰 데이터·핫스팟 등 다른 인터넷으로 열어 비교해 보세요. 그래도 안 되면 Firebase 콘솔 › Firestore › 사용량을 확인하세요.";
+ return t.trim().slice(0,160)}
+const dbState=()=>DB.err?`<div class="dbst err"><b>⚠ 서버에 연결하지 못했습니다</b><br>${esc(dbWhy(DB.err)).replace(/\n/g,"<br>")}<div class="mute" style="margin-top:4px;font-size:12px">오류: ${esc(String(DB.err.code||DB.err.message||DB.err).slice(0,80))}</div></div>`
+ :DB.ok.has("students")?`<div class="dbst ok">● 서버 연결됨</div>`
+ :`<div class="dbst ${DB.slow?"err":""}">${DB.slow?`<b>⚠ 서버 연결이 늦어지고 있습니다</b><br>${esc(dbWhy({code:"unavailable"})).replace(/\n/g,"<br>")}`:"서버에 연결하는 중…"}</div>`;
+// ───── 첨부파일 고르기: 고른 파일을 목록으로 보여 주고 하나씩 ✕ 빼기 (브라우저 기본 파일 칸은 파일을 하나씩 지울 수 없음)
+// 고른 파일은 PEND["main-notice:x-files"]처럼 '화면별 작성란(main-○○)/팝업(modal) + 칸 id'로 보관 → 화면을 다시 그려도 남고, 공지·수행평가 작성칸끼리는 섞이지 않음
+const PEND={};
+const fpScope=el=>el.closest("#modal")?"modal":"main-"+S.page;
+const pend=(r,sel)=>PEND[(r.id==="modal"?"modal":"main-"+S.page)+":"+sel.replace("#","")]||[];
+const fpClear=sc=>Object.keys(PEND).forEach(k=>{if(k.startsWith(sc))delete PEND[k]});   // "main"이면 모든 작성란, "modal"이면 팝업
+const fmtKB=n=>n<1024?n+"B":n<1048576?Math.round(n/1024)+"KB":(n/1048576).toFixed(1)+"MB";
+const filePick=(id,multi=true)=>`<div class="fp" data-fp="${id}"><input type="file" id="${id}" ${multi?"multiple":""} hidden><div class="fp-list"></div><div class="flex"><button type="button" class="btn s o" data-fp-add="${id}">📎 파일 ${multi?"추가":"고르기"}</button><span class="fp-sum mute">고른 파일 없음</span></div></div>`;
+function paintFP(root){root.querySelectorAll(".fp").forEach(box=>{const k=fpScope(box)+":"+box.dataset.fp,fs=PEND[k]||[],sum=fs.reduce((t,f)=>t+f.size,0),multi=box.querySelector("input").multiple;
+ box.querySelector(".fp-list").innerHTML=fs.map((f,i)=>`<div class="fp-it ${f.size>7e5?"fp-over":""}"><span class="n" title="${esc(f.name)}">📎 ${esc(f.name)}</span><span class="z">${fmtKB(f.size)}${f.size>7e5?" · 너무 큼":""}</span><button type="button" class="fp-rm" data-fp-rm="${i}" title="이 파일 빼기">✕ 빼기</button></div>`).join("");
+ const sm=box.querySelector(".fp-sum");sm.classList.toggle("over",sum>7e5);
+ sm.textContent=!fs.length?"고른 파일 없음":multi?`새 파일 ${fs.length}개 · 합계 ${fmtKB(sum)}${sum>7e5?" (700KB 초과: 빼기로 줄여 주세요)":""}`:(sum>7e5?"700KB 초과: 빼기로 지우고 링크로 내 주세요":"")})}
+document.addEventListener("click",e=>{const add=e.target.closest("[data-fp-add]"),rm=e.target.closest("[data-fp-rm]");if(!add&&!rm)return;e.preventDefault();e.stopPropagation();
+ const box=(add||rm).closest(".fp"),k=fpScope(box)+":"+box.dataset.fp;
+ if(add)return box.querySelector("input").click();
+ (PEND[k]||[]).splice(+rm.dataset.fpRm,1);paintFP(box.parentElement)},true);
+document.addEventListener("change",e=>{const box=e.target.closest?.(".fp");if(!box||e.target.type!=="file")return;e.stopPropagation();const k=fpScope(box)+":"+box.dataset.fp,fs=[...e.target.files];
+ PEND[k]=e.target.multiple?(PEND[k]||[]).concat(fs):fs.slice(0,1);e.target.value="";paintFP(box.parentElement)},true);
+// 저장 실패 안내: Firestore 저장이 거부되면(문서 1MB 초과 등) 조용히 멈추지 않고 이유를 알려 줌. 고른 파일은 그대로 남음
+addEventListener("unhandledrejection",e=>{const m=String(e.reason?.message||e.reason||"");if(!/firestore|firebase|permission|size|quota|deadline|unavailable/i.test(m+String(e.reason?.code||"")))return;
+ alert(/size|bytes|too large|exceeds/i.test(m)?"저장하지 못했습니다: 글과 첨부파일을 합친 크기가 저장 한도(약 1MB)를 넘었습니다.\n첨부파일을 ✕ 빼기로 줄이거나, 큰 파일은 드라이브 링크로 올려 주세요.":"저장하지 못했습니다.\n\n"+dbWhy(e.reason))});
+// ───── 긴 글 접기: 본문이 8줄을 넘으면 접어 두고 '펼쳐서 전체 보기'로 엶. 펼친 글은 화면을 다시 그려도 펼친 채 유지
+const FOLD=new Set();
+const foldBar=n=>n?`<div class="plist-bar"><span class="mute">글 ${n}개 · 긴 글은 8줄까지만 보입니다</span><button class="btn s o" data-fold-all="1">모두 펼치기</button><button class="btn s o" data-fold-all="0">모두 접기</button></div>`:"";
+function applyFold(root){root?.querySelectorAll(".fold[data-fold]").forEach(el=>{const id=el.dataset.fold,open=FOLD.has(id),lh=parseFloat(getComputedStyle(el).lineHeight)||27;
+ el.classList.toggle("open",open);const long=el.scrollHeight>lh*8+4;el.classList.toggle("cut",long);
+ let b=el.nextElementSibling?.classList.contains("fold-btn")?el.nextElementSibling:null;
+ if(!long){b?.remove();return}if(!b){b=document.createElement("button");b.className="fold-btn";b.dataset.foldTg=id;el.after(b)}
+ b.textContent=open?"▲ 접기":`▼ 펼쳐서 전체 보기 (약 ${Math.round(el.scrollHeight/lh)}줄)`})}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-fold-tg],[data-fold-all]");if(!t)return;
+ if(t.dataset.foldAll!=null){const r=t.closest(".card")||$("#main");r.querySelectorAll(".fold[data-fold]").forEach(el=>t.dataset.foldAll==="1"?FOLD.add(el.dataset.fold):FOLD.delete(el.dataset.fold));return applyFold(r)}
+ const id=t.dataset.foldTg,post=t.closest(".post")||t.parentElement;FOLD.has(id)?FOLD.delete(id):FOLD.add(id);applyFold(post);
+ if(!FOLD.has(id)&&post.getBoundingClientRect().top<0)post.scrollIntoView({block:"start",behavior:"smooth"})});
 // 첨부 공통 처리: 기존 파일 중 '삭제' 체크 안 한 것 + 새로 고른 파일 (합계 700KB 이하)
-async function mergeFiles(r,old,rmCls,inputSel){const rm=new Set([...r.querySelectorAll("."+rmCls+":checked")].map(x=>+x.value)),keep=(old||[]).filter((_,i)=>!rm.has(i)),fs=[...q(r,inputSel).files];
+async function mergeFiles(r,old,rmCls,inputSel){const rm=new Set([...r.querySelectorAll("."+rmCls+":checked")].map(x=>+x.value)),keep=(old||[]).filter((_,i)=>!rm.has(i)),fs=pend(r,inputSel);
  const sum=keep.reduce((t,f)=>t+f.fileData.length*0.75,0)+fs.reduce((t,f)=>t+f.size,0);
- if(sum>7e5){alert(`첨부파일 합계가 ${Math.round(sum/1024)}KB입니다. 700KB 이하로 줄이거나, 큰 파일은 드라이브 링크로 올려 주세요.`);return null}
+ if(sum>7e5){alert(`첨부파일 합계가 ${Math.round(sum/1024)}KB입니다. 700KB 이하여야 등록됩니다.\n\n파일 목록에서 큰 파일(빨간색)을 ✕ 빼기로 지우거나, 큰 파일은 드라이브 링크로 올려 주세요.`);return null}
  const add=await Promise.all(fs.map(f=>new Promise(res=>{const x=new FileReader;x.onload=e=>res({fileName:f.name,fileData:e.target.result});x.readAsDataURL(f)})));
  return keep.concat(add)}
 async function readAttach(r,old=[]){const files=await mergeFiles(r,old,"x-rmfile","#x-files");return files&&{linkUrl:q(r,"#x-link").value.trim(),files}}
@@ -136,8 +195,8 @@ const fmtDl=d=>d?esc(d.replace("T"," "))+" 마감":"상시";
 const RESET=[["schedule","학사일정"],["meals","급식"],["students","학생 명단"],["notices","공지사항"],["assessments","수행평가"],["assignments","과제"],["submissions","제출물"],["board","방명록"],["counsel","상담 신청"]];
 const NAV=[["home","🏠 홈"],["notice","📢 공지사항"],["assess","📝 수행평가"],["assign","📥 과제 제출"],["board","💬 방명록"],["counsel","🤝 상담 신청"]];
 function side(){$("#side").innerHTML=`<h1>신현준T</h1><small>교과 통합관리</small>`+(S.user?`<nav class="navs">`+NAV.concat(T()?[["tools","🧰 도구 모음"],["admin","⚙️ 관리"]]:[["settings","🔒 설정"]]).map(([k,v])=>`<button class="nav ${S.page===k?"on":""}" data-go="${k}">${v}</button>`).join("")+`</nav><div class="who"><b>${T()?"교사":esc(st().name)}</b><br><span style="color:#a9c7ba">${T()?"관리자 모드":`${st().grade}학년 ${st().classNum}반 ${st().num}번`}</span><br><button class="btn s o" style="margin-top:8px" data-act="logout">로그아웃</button></div>`:"");if(document.documentElement.classList.contains("mob"))$("#side .nav.on")?.scrollIntoView({block:"nearest",inline:"nearest"})}
-function render(){side();const m=$("#main"),tl=S.user&&T()&&S.page==="tools";m.hidden=!!tl;$("#tools").hidden=!tl;if(tl)return showTools();if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button></div>`+viewBar();setTimeout(()=>$("#login-id")?.focus(),30);return}
-m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()+viewBar();if(S.page==="admin"){filterRoster();paintPw()}}
+function render(){side();const m=$("#main"),tl=S.user&&T()&&S.page==="tools";m.hidden=!!tl;$("#tools").hidden=!tl;if(tl)return showTools();if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button>${dbState()}</div>`+viewBar();setTimeout(()=>$("#login-id")?.focus(),30);return}
+m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()+viewBar();applyFold(m);paintFP(m);if(S.page==="admin"){filterRoster();paintPw()}}
 
 // ───── 홈
 function monthCal(){const[y,mo]=S.ym.split("-").map(Number),first=new Date(y,mo-1,1).getDay(),n=new Date(y,mo,0).getDate();let h=["일","월","화","수","목","금","토"].map(d=>`<div class="h">${d}</div>`).join("")+"<div></div>".repeat(first);
@@ -152,9 +211,9 @@ return `<h2>안녕하세요${T()?", 선생님":", "+esc(st().name)+" 학생"} �
 <div class="card"><h3>📥 과제 <span class="flex">${asortSel()}<button class="btn s o" data-go="assign">전체</button></span></h3>${due.map(a=>`<div class="row"><button class="link" data-open="${a.id}">${esc(a.title)}</button> <span class="tag y">${a.deadline?dday(a.deadline.slice(0,10)):"상시"}</span><div class="mute">${esc(a.subject||"")}</div></div>`).join("")||'<span class="mute">진행 중인 과제가 없습니다.</span>'}</div></div>`}
 
 // ───── 공지 / 수행평가
-function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="row"><span class="tag">${tgt(n)}</span>${n.date?` <span class="tag y">📅 ${nRange(n)}</span>`:""} <button class="link" data-notice="${n.id}">${esc(n.title)}</button> ${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}<div style="white-space:pre-line">${esc(n.body)}</div>${attachView(n)}<div class="mute">${n.createdAt.slice(0,10)}${n.editedAt?` · ${n.editedAt.slice(0,10)} 수정`:""}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
+function notice(){return `<h2>공지사항</h2><p class="sub">학년·반·학생별로 지정된 공지사항만 표시됩니다.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${foldBar(S.notices.filter(mine).length)}${S.notices.filter(mine).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(n=>`<div class="post"><div class="ph"><span class="tag">${tgt(n)}</span>${n.date?`<span class="tag y">📅 ${nRange(n)}</span>`:""}<button class="link" data-notice="${n.id}">${esc(n.title)}</button>${T()?`<button class="btn s d" data-del="notices:${n.id}">삭제</button>`:""}</div><div class="pb fold" data-fold="${n.id}">${esc(n.body)}</div>${attachView(n)}<div class="mute pm">${n.createdAt.slice(0,10)}${n.editedAt?` · ${n.editedAt.slice(0,10)} 수정`:""}</div></div>`).join("")||'<span class="mute">새로운 공지사항이 없습니다.</span>'}</div>
 ${T()?`<div class="card"><h3>새 공지 작성</h3><label>제목</label><input id="n-title"><label>내용</label><textarea id="n-body"></textarea>${attachFields()}${tgtFields()}${ndateFields()}<br><button class="btn" data-act="addNotice">등록</button></div>`:""}</div>`}
-function assess(){return `<h2>수행평가 안내</h2><p class="sub">일정과 평가 기준을 확인하세요.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${S.assessments.filter(mine).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>`<div class="row"><span class="tag r">${dday(a.date)}</span> <button class="link" data-assess="${a.id}">${esc(a.title)}</button> <span class="tag b">${esc(a.subject)}</span> <span class="tag">${tgt(a)}</span> ${T()?`<button class="btn s d" data-del="assessments:${a.id}">삭제</button>`:""}<div class="mute">${a.date}</div><div style="white-space:pre-line">${esc(a.desc)}</div>${attachView(a)}</div>`).join("")||'<span class="mute">등록된 수행평가가 없습니다.</span>'}</div>
+function assess(){return `<h2>수행평가 안내</h2><p class="sub">일정과 평가 기준을 확인하세요.${T()?" 제목을 누르면 수정할 수 있습니다.":""}</p><div class="${T()?"g2":""}"><div class="card">${foldBar(S.assessments.filter(mine).length)}${S.assessments.filter(mine).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>`<div class="post as"><div class="ph"><span class="tag r">${dday(a.date)}</span><button class="link" data-assess="${a.id}">${esc(a.title)}</button><span class="tag b">${esc(a.subject)}</span><span class="tag">${tgt(a)}</span>${T()?`<button class="btn s d" data-del="assessments:${a.id}">삭제</button>`:""}</div><div class="mute pm" style="margin-top:2px">실시일 ${a.date}</div><div class="pb fold" data-fold="${a.id}">${esc(a.desc)}</div>${attachView(a)}</div>`).join("")||'<span class="mute">등록된 수행평가가 없습니다.</span>'}</div>
 ${T()?`<div class="card"><h3>수행평가 등록</h3><label>과목</label><input id="a-subj"><label>제목</label><input id="a-title"><label>평가 기준·유의사항</label><textarea id="a-desc"></textarea>${attachFields()}${tgtFields()}<label>실시일</label><input id="a-date" type="date"><br><br><button class="btn" data-act="addAssess">등록</button></div>`:""}</div>`}
 
 // 교사용 수정 팝업 (과제 수정과 같은 방식)
@@ -171,7 +230,7 @@ return `<h2>과제 제출</h2><p class="sub">과제를 만들고 제출물을 �
 <div class="card"><h3>과제 만들기</h3>${assignFields({grade:1})}<br><button class="btn" data-act="addAssign">등록</button></div>
 <div class="card full" id="stat-card">${statCard()}</div>
 <div class="card full">${subTable()}</div></div>`}
-const assignFields=a=>`<label>과목</label><input id="s-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="s-title" value="${esc(a.title||"")}"><label>안내</label><textarea id="s-desc" style="min-height:140px">${esc(a.desc||"")}</textarea><div class="flex"><div><label>학년</label><input id="s-grade" type="number" min="1" max="3" value="${a.grade||1}"></div><div><label>반</label><input id="s-classes" placeholder="1, 2, 3 / 전체: 공란" value="${esc((a.classes||[]).join(", "))}"></div></div><label>마감</label><input id="s-dl" type="datetime-local" value="${esc(a.deadline||"")}"><label>링크(선택)</label><input id="s-link" placeholder="https://" value="${esc(a.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(a.files,"s-rmfile")}<input id="s-files" type="file" multiple>`;
+const assignFields=a=>`<label>과목</label><input id="s-subj" value="${esc(a.subject||"")}"><label>제목</label><input id="s-title" value="${esc(a.title||"")}"><label>안내</label><textarea id="s-desc" style="min-height:140px">${esc(a.desc||"")}</textarea><div class="flex"><div><label>학년</label><input id="s-grade" type="number" min="1" max="3" value="${a.grade||1}"></div><div><label>반</label><input id="s-classes" placeholder="1, 2, 3 / 전체: 공란" value="${esc((a.classes||[]).join(", "))}"></div></div><label>마감</label><input id="s-dl" type="datetime-local" value="${esc(a.deadline||"")}"><label>링크(선택)</label><input id="s-link" placeholder="https://" value="${esc(a.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(a.files,"s-rmfile")}${filePick("s-files")}`;
 // 과제 첨부: 기존 파일 중 '삭제' 체크 안 한 것 + 새로 고른 파일
 const readAssignFiles=(r,old=[])=>mergeFiles(r,old,"s-rmfile","#s-files");
 const assignVals=r=>({subject:q(r,"#s-subj").value.trim(),title:q(r,"#s-title").value.trim(),desc:q(r,"#s-desc").value,grade:+q(r,"#s-grade").value||1,classes:q(r,"#s-classes").value.split(/[,\s]+/).map(Number).filter(Boolean),deadline:q(r,"#s-dl").value,linkUrl:q(r,"#s-link").value.trim()});
@@ -192,7 +251,7 @@ const mineS=S.submissions.filter(s=>s.assignmentId===id&&s.studentId===st().stud
 modal(`<span class="tag b">${esc(a.subject||"")}</span> <span class="tag y">${fmtDl(a.deadline)}</span><h2 style="margin-top:6px">${esc(a.title)}</h2><div class="big" style="font-size:15px">${esc(a.desc||"안내 없음")}</div>
 ${a.linkUrl?`<p><a href="${esc(a.linkUrl)}" target="_blank">🔗 참고 링크</a></p>`:""}${(a.files||[]).map(f=>`<p><a href="${f.fileData}" download="${esc(f.fileName)}">📎 ${esc(f.fileName)}</a></p>`).join("")}
 ${mineS.length?`<h3 style="margin-top:20px">내 제출물</h3>${mineS.map(s=>`<div class="row">✔ ${esc(s.subTitle)} · ${esc(s.submittedAt)} ${s.isLate?'<span class="tag r">지각</span>':""} ${s.fileName?esc(s.fileName):""} <a href="#" data-del="submissions:${s.id}">삭제</a></div>`).join("")}`:""}
-<h3 style="margin-top:20px">제출하기</h3><label>제출물 이름</label><input id="u-sub" value="제출물"><p class="mute">내용·링크·첨부파일 중 하나 이상은 반드시 작성해야 제출됩니다.</p><label>내용</label><textarea id="u-body"></textarea><label>링크</label><input id="u-url" placeholder="https://"><label>첨부파일 (700KB 이하)</label><input id="u-file" type="file"><br><br><button class="btn" data-act="doSubmit" data-id="${id}">제출</button>`)}
+<h3 style="margin-top:20px">제출하기</h3><label>제출물 이름</label><input id="u-sub" value="제출물"><p class="mute">내용·링크·첨부파일 중 하나 이상은 반드시 작성해야 제출됩니다.</p><label>내용</label><textarea id="u-body"></textarea><label>링크</label><input id="u-url" placeholder="https://"><label>첨부파일 (1개, 700KB 이하)</label>${filePick("u-file",false)}<br><br><button class="btn" data-act="doSubmit" data-id="${id}">제출</button>`)}
 function viewSub(id){const s=S.submissions.find(x=>x.id===id);if(!s)return;
 modal(`<span class="tag">${esc(s.studentId)}</span> ${s.isLate?'<span class="tag r">지각 제출</span>':'<span class="tag">정상 제출</span>'}<h2 style="margin-top:6px">${esc(s.studentName)} <span class="mute" style="font-size:15px">${s.grade}학년 ${s.classNum}반 ${s.num}번</span></h2><p class="sub">${esc(s.assignmentTitle)} · ${esc(s.subTitle)} · ${esc(s.submittedAt)}</p>
 <div class="big">${esc(s.content||"작성한 내용이 없습니다.")}${s.fileData?.startsWith("data:image")?`<img src="${s.fileData}">`:""}</div>
@@ -353,7 +412,7 @@ function getView(){try{return localStorage.getItem("view")||"auto"}catch(e){retu
 function applyView(){const v=getView(),vp=$('meta[name=viewport]');vp.content=v==="pc"?"width=1280":"width=device-width,initial-scale=1";
  const mob=v==="mob"||(v==="auto"&&matchMedia("(max-width:820px)").matches);document.documentElement.classList.toggle("mob",mob)}
 const viewBar=()=>`<div class="vt">화면 보기 ${VIEWS.map(([k,t])=>`<button class="${getView()===k?"on":""}" data-view-mode="${k}">${t}</button>`).join("")}</div>`;
-applyView();addEventListener("resize",()=>{if(getView()==="auto")applyView();sideH()});
+applyView();addEventListener("resize",()=>{if(getView()==="auto")applyView();sideH();applyFold($("#main"))});
 
 // ───── 🧰 도구 모음(수업 툴킷)
 // 툴킷 본체(toolkit.html)는 파일 맨 아래 window.TOOLKIT_HTML에 통째로 들어 있음 → html 파일 하나로 동작
@@ -372,10 +431,10 @@ addEventListener("message",e=>{const f=$("#toolkitFrame"),d=e.data;if(!f||e.sour
  else if(d.type==="popup")popTool(d.id)});
 
 // ───── 방명록 / 상담 / 설정
-function board(){return `<h2>방명록</h2><p class="sub">자유롭게 남겨 주세요. 서로 존중하는 말을 써 주세요.</p><div class="card"><div class="flex"><input id="b-text" placeholder="한마디 남기기"><button class="btn" data-act="addBoard">남기기</button></div></div><div class="card" style="margin-top:16px">${[...S.board].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(b=>`<div class="row"><b>${esc(b.name)}</b> <span class="mute">${new Date(b.createdAt).toLocaleString("ko-KR")}</span> ${T()||b.studentId===st()?.studentId?`<a href="#" data-del="board:${b.id}">삭제</a>`:""}<div>${esc(b.text)}</div></div>`).join("")||'<span class="mute">첫 글을 남겨 보세요.</span>'}</div>`}
+function board(){return `<h2>방명록</h2><p class="sub">자유롭게 남겨 주세요. 서로 존중하는 말을 써 주세요.</p><div class="card"><div class="flex"><input id="b-text" placeholder="한마디 남기기"><button class="btn" data-act="addBoard">남기기</button></div></div><div class="card" style="margin-top:16px">${[...S.board].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(b=>`<div class="post bd"><div class="ph"><b>${esc(b.name)}</b> <span class="mute">${new Date(b.createdAt).toLocaleString("ko-KR")}</span>${T()||b.studentId===st()?.studentId?`<button class="btn s d" data-del="board:${b.id}">삭제</button>`:""}</div><div class="pb fold" data-fold="${b.id}" style="margin-top:4px">${esc(b.text)}</div></div>`).join("")||'<span class="mute">첫 글을 남겨 보세요.</span>'}</div>`}
 function counsel(){const l=S.counsel.filter(c=>T()||c.studentId===st().studentId).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
 return `<h2>상담 신청</h2><p class="sub">${T()?"신청 내용을 확인하고 답변을 남기세요.":"신청 내용은 선생님만 볼 수 있습니다."}</p><div class="${T()?"":"g2"}">${T()?"":`<div class="card"><h3>새 신청</h3><label>희망 날짜</label><input id="c-date" type="date"><label>분야</label><select id="c-type"><option>학업</option><option>진로</option><option>교우관계</option><option>기타</option></select><label>내용</label><textarea id="c-body"></textarea><br><button class="btn" data-act="addCounsel">신청</button></div>`}
-<div class="card"><h3>${T()?"신청 목록":"내 신청 내역"}</h3>${l.map(c=>`<div class="row"><span class="tag ${c.reply?"":"y"}">${c.reply?"답변 완료":"대기"}</span> <b>${T()?esc(c.name)+" ("+esc(c.studentId)+") · ":""}${esc(c.type)}</b> <span class="mute">희망 ${esc(c.date||"-")}</span><div>${esc(c.body)}</div>${c.reply?`<div class="mute">↳ 교사: ${esc(c.reply)}</div>`:""}${T()?`<div class="flex"><input id="r-${c.id}" placeholder="답변" value="${esc(c.reply||"")}"><button class="btn s" data-reply="${c.id}">저장</button></div>`:""}</div>`).join("")||'<span class="mute">내역이 없습니다.</span>'}</div></div>`}
+<div class="card"><h3>${T()?"신청 목록":"내 신청 내역"}</h3>${l.map(c=>`<div class="post cs"><div class="ph"><span class="tag ${c.reply?"":"y"}">${c.reply?"답변 완료":"대기"}</span><b>${T()?esc(c.name)+" ("+esc(c.studentId)+") · ":""}${esc(c.type)}</b><span class="mute">희망 ${esc(c.date||"-")}</span></div><div class="pb fold" data-fold="${c.id}">${esc(c.body)}</div>${c.reply?`<div class="mute pm">↳ 교사: ${esc(c.reply)}</div>`:""}${T()?`<div class="flex"><input id="r-${c.id}" placeholder="답변" value="${esc(c.reply||"")}"><button class="btn s" data-reply="${c.id}">저장</button></div>`:""}</div>`).join("")||'<span class="mute">내역이 없습니다.</span>'}</div></div>`}
 function settings(){return `<h2>설정</h2><p class="sub">처음 비밀번호는 없으며, 학번만으로 로그인됩니다. 비밀번호를 정하면 다음부터 학번과 비밀번호로 로그인합니다.</p><div class="card" style="max-width:520px"><h3>비밀번호 ${st().pw?"변경":"설정"}</h3><label>새 비밀번호 (4자 이상)</label><input id="sp1" type="password"><label>새 비밀번호 확인</label><input id="sp2" type="password"><br><br><button class="btn" data-act="stuPw">저장</button></div>`}
 
 // ───── 교사 관리
@@ -440,26 +499,27 @@ function enter(user){S.user=user;S.page="home";closeModal();render()}
 const A={
 login(){const v=$("#login-id").value.trim();if(!v)return;
  if(v==="교사"||v==="관리자")return modal(`<h2>교사 로그인</h2><label>비밀번호</label><input id="pw-in" type="password"><br><br><button class="btn" data-act="pwOk" data-who="t" style="width:100%">확인</button>`,1);
+ if(!DB.ok.has("students"))return alert("학생 명단을 아직 서버에서 불러오지 못했습니다.\n\n"+(DB.err?dbWhy(DB.err):"서버에 연결하는 중입니다. 잠시 뒤 다시 시도해 주세요."));
  const s=S.students.find(x=>x.studentId===v);if(!s)return alert("등록되지 않은 학번입니다.");
  if(!s.pw)return enter({role:"student",data:s});
  modal(`<h2>${esc(s.name)} 학생</h2><label>비밀번호</label><input id="pw-in" type="password"><br><br><button class="btn" data-act="pwOk" data-who="${s.id}" style="width:100%">확인</button>`,1)},
 async pwOk(who){const p=$("#pw-in").value;if(!p)return;
- if(who==="t"){const r=await getDoc(doc(db,"config","admin")),h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
+ if(who==="t"){let r;try{r=await getDoc(doc(db,"config","admin"))}catch(e){DB.err=DB.err||e;render();return alert("교사 비밀번호를 서버에서 확인하지 못했습니다.\n\n"+dbWhy(e))}const h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
  const s=S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
 logout(){closeTools();S.user=null;S.pwShow="";S.stq="";clearTimeout(pwTimer);render()},
-async addNotice(){const r=$("#main"),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r);if(!x)return;await put("notices",{id:uid("n"),title:t,body:q(r,"#n-body").value,createdAt:new Date().toISOString(),...tgtVals(r),...nd,...x});alert("등록되었습니다.");render()},
+async addNotice(){const r=$("#main"),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r);if(!x)return;await put("notices",{id:uid("n"),title:t,body:q(r,"#n-body").value,createdAt:new Date().toISOString(),...tgtVals(r),...nd,...x});fpClear("main-"+S.page);alert("등록되었습니다.");render()},
 async saveNotice(id){const r=$("#modal"),n=S.notices.find(x=>x.id===id),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r,n.files);if(!x)return;
  await setDoc(doc(db,"notices",id),{...n,title:t,body:q(r,"#n-body").value,...tgtVals(r),...nd,...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
-async addAssess(){const r=$("#main"),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r);if(!x)return;await put("assessments",{id:uid("as"),subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x});alert("등록되었습니다.");render()},
+async addAssess(){const r=$("#main"),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r);if(!x)return;await put("assessments",{id:uid("as"),subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x});fpClear("main-"+S.page);alert("등록되었습니다.");render()},
 async saveAssess(id){const r=$("#modal"),a=S.assessments.find(x=>x.id===id),t=q(r,"#a-title").value.trim(),d=q(r,"#a-date").value;if(!t||!d)return alert("제목과 실시일을 입력하세요.");const x=await readAttach(r,a.files);if(!x)return;
  await setDoc(doc(db,"assessments",id),{...a,subject:q(r,"#a-subj").value,title:t,date:d,desc:q(r,"#a-desc").value,...tgtVals(r),...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
-async addAssign(){const r=$("#main"),v=assignVals(r);if(!v.title)return alert("제목을 입력하세요.");const files=await readAssignFiles(r);if(!files)return;await put("assignments",{id:uid("assign_"),...v,files,order:S.assignments.length+1,createdAt:today()});alert("등록되었습니다.");render()},
+async addAssign(){const r=$("#main"),v=assignVals(r);if(!v.title)return alert("제목을 입력하세요.");const files=await readAssignFiles(r);if(!files)return;await put("assignments",{id:uid("assign_"),...v,files,order:S.assignments.length+1,createdAt:today()});fpClear("main-"+S.page);alert("등록되었습니다.");render()},
 async saveAssign(id){const r=$("#modal"),v=assignVals(r);if(!v.title)return alert("제목을 입력하세요.");const a=S.assignments.find(x=>x.id===id),files=await readAssignFiles(r,a.files||[]);if(!files)return;await setDoc(doc(db,"assignments",id),{...a,...v,files});
  // 과제 제목이 바뀌면 제출물에 저장된 과제명도 함께 갱신
  if(a.title!==v.title)await batchPut("submissions",S.submissions.filter(s=>s.assignmentId===id).map(s=>({id:s.id,assignmentTitle:v.title})));closeModal()},
-async doSubmit(id){const a=S.assignments.find(x=>x.id===id),f=$("#u-file").files[0];let fileName="",fileData="";
+async doSubmit(id){const a=S.assignments.find(x=>x.id===id),f=pend($("#modal"),"#u-file")[0];let fileName="",fileData="";
  if(!$("#u-body").value.trim()&&!$("#u-url").value.trim()&&!f)return alert("내용, 링크, 첨부파일 중 하나 이상을 입력해야 제출할 수 있습니다.");
- if(f){if(f.size>7e5)return alert("파일이 700KB를 초과합니다. 링크로 제출해 주세요.");fileName=f.name;fileData=await new Promise(r=>{const x=new FileReader;x.onload=e=>r(e.target.result);x.readAsDataURL(f)})}
+ if(f){if(f.size>7e5)return alert(`첨부파일이 ${Math.round(f.size/1024)}KB로 700KB를 넘습니다.\n\n✕ 빼기로 파일을 지우고, 드라이브 등에 올린 뒤 링크로 제출해 주세요.`);fileName=f.name;fileData=await new Promise(r=>{const x=new FileReader;x.onload=e=>r(e.target.result);x.readAsDataURL(f)})}
  const now=new Date(),s=st();await put("submissions",{id:"sub_"+Date.now(),assignmentId:id,assignmentTitle:a.title,subTitle:$("#u-sub").value||"제출물",studentId:s.studentId,studentName:s.name,grade:s.grade,classNum:s.classNum,num:s.num,content:$("#u-body").value.trim(),fileName,fileData,webUrl:$("#u-url").value.trim(),submittedAt:now.toLocaleString("ko-KR"),isLate:!!a.deadline&&now>new Date(a.deadline)});closeModal();alert("제출되었습니다.")},
 addBoard(){const t=$("#b-text").value.trim();if(t)put("board",{id:uid("b"),name:T()?"선생님":st().name,studentId:st()?.studentId||"",text:t,createdAt:new Date().toISOString()})},
 addCounsel(){const b=$("#c-body").value.trim();if(!b)return alert("내용을 입력하세요.");put("counsel",{id:uid("c"),studentId:st().studentId,name:st().name,date:$("#c-date").value,type:$("#c-type").value,body:b,reply:"",createdAt:new Date().toISOString()});alert("신청되었습니다.")},
@@ -508,9 +568,10 @@ if(e.target.dataset.sf){const k=e.target.dataset.sf;S.sf[k]=e.target.value;if(k=
 const k=e.target.dataset.csv;if(!k)return;const rows=csv(await e.target.files[0].text());
 const arr=k==="schedule"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:uid("f"),date:r[0],name:r[1]})):k==="meals"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:"m"+r[0]+(r[1]||"중식"),date:r[0],type:r[1]||"중식",menu:(r[2]||"").split("/").join("\n")})):rows.filter(r=>/^\d{5}$/.test(r[0])).map(r=>mkStu(r[0],r[1]));
 await batchPut(k,arr);alert(arr.length+"건을 불러왔습니다.")});
-COLS.forEach(c=>onSnapshot(collection(db,c),s=>{S[c]=s.docs.map(d=>d.data());
+COLS.forEach(c=>onSnapshot(collection(db,c),s=>{S[c]=s.docs.map(d=>d.data());if(!s.metadata?.fromCache){DB.ok.add(c);if(DB.err&&DB.ok.size>=COLS.length)DB.err=null}
  if(c==="students"&&S.user?.role==="student"){const me=S[c].find(x=>x.id===st().id);if(me)S.user.data=me}
- if(!document.activeElement?.matches("#main input,#main textarea,#main select"))render()}));
+ if(!document.activeElement?.matches("#main input,#main textarea,#main select"))render()},err=>{console.warn("Firestore",c,err);DB.err=err;if(!S.user)render()}));
+setTimeout(()=>{if(!DB.ok.has("students")){DB.slow=true;if(!S.user)render()}},10000);
 render();
 </script>
 <script id="toolkit-data">/* 🧰 도구 모음(수업 툴킷) 내장본: toolkit.html 전체. 툴킷을 고치면 embed_toolkit.py로 이 줄만 다시 넣음 */
