@@ -105,7 +105,7 @@ html.mob #tools{flex:none;height:calc(100dvh - var(--sideH,110px));padding:8px}h
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import {getFirestore,collection,doc,setDoc,deleteDoc,getDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {getFirestore,collection,doc,setDoc,deleteDoc,getDoc,getDocs,query,where,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 // 기존 과제 제출 웹앱과 같은 Firebase 프로젝트 (students / assignments / submissions 그대로 연동)
 const db=getFirestore(initializeApp({apiKey:"AIzaSyBdyDgmPFg-Py1ej87klSWqXB8TC5yixkU",authDomain:"assignment-submission-hs.firebaseapp.com",projectId:"assignment-submission-hs",storageBucket:"assignment-submission-hs.firebasestorage.app",messagingSenderId:"702547388370",appId:"1:702547388370:web:f47dc11400725b67324a0b"}));
 const COLS=["students","assignments","submissions","notices","assessments","board","counsel","schedule","meals"];
@@ -139,15 +139,14 @@ const asortSel=()=>`<select data-asort="1" style="width:auto;padding:4px 8px;fon
 const fileRows=(files,cls)=>(files||[]).map((f,i)=>`<div class="flex" style="margin-bottom:4px"><a href="${f.fileData}" download="${esc(f.fileName)}" style="flex:1">📎 ${esc(f.fileName)}</a><label style="all:unset;font-size:13px;color:var(--r);cursor:pointer;display:flex;gap:4px;align-items:center"><input type="checkbox" class="${cls}" value="${i}" style="width:auto"> 삭제</label></div>`).join("");
 const attachFields=(o={})=>`<label>링크(선택)</label><input id="x-link" placeholder="https://" value="${esc(o.linkUrl||"")}"><label>첨부파일(선택, 여러 개 가능 · 합계 700KB 이하)</label>${fileRows(o.files,"x-rmfile")}${filePick("x-files")}`;
 // ───── 서버(Firebase) 연결 상태: 서버에서 데이터를 받았는지, 실패했다면 이유를 기록해 로그인 화면과 알림창에 보여 줌
-const DB={ok:new Set(),err:null,slow:false};
+const DB={ok:new Set(),err:null,busy:false};
 function dbWhy(e){const t=String(e?.code||"")+" "+String(e?.message||e||"");
  if(/resource-exhausted|quota/i.test(t))return "Firebase 무료 사용량(하루 읽기 횟수 등)을 넘었습니다. 한국 시각 오후 4~5시(미국 태평양 자정)에 다시 풀립니다.\n→ Firebase 콘솔 › Firestore › 사용량에서 확인하세요.";
  if(/permission|insufficient/i.test(t))return "Firestore 보안 규칙이 접근을 막고 있습니다. 처음에 '테스트 모드'로 만들었다면 사용 기한(30일)이 끝났을 수 있습니다.\n→ Firebase 콘솔 › Firestore › 규칙을 확인하세요.";
  if(/unavailable|offline|network|failed to fetch/i.test(t))return "Firebase 서버에 연결되지 않습니다. 인터넷이 끊겼거나, 학교망·보안 프로그램이 Firebase 접속을 막고 있을 수 있습니다.\n→ 휴대폰 데이터·핫스팟 등 다른 인터넷으로 열어 비교해 보세요. 그래도 안 되면 Firebase 콘솔 › Firestore › 사용량을 확인하세요.";
  return t.trim().slice(0,160)}
 const dbState=()=>DB.err?`<div class="dbst err"><b>⚠ 서버에 연결하지 못했습니다</b><br>${esc(dbWhy(DB.err)).replace(/\n/g,"<br>")}<div class="mute" style="margin-top:4px;font-size:12px">오류: ${esc(String(DB.err.code||DB.err.message||DB.err).slice(0,80))}</div></div>`
- :DB.ok.has("students")?`<div class="dbst ok">● 서버 연결됨</div>`
- :`<div class="dbst ${DB.slow?"err":""}">${DB.slow?`<b>⚠ 서버 연결이 늦어지고 있습니다</b><br>${esc(dbWhy({code:"unavailable"})).replace(/\n/g,"<br>")}`:"서버에 연결하는 중…"}</div>`;
+ :"";
 // ───── 첨부파일 고르기: 고른 파일을 목록으로 보여 주고 하나씩 ✕ 빼기 (브라우저 기본 파일 칸은 파일을 하나씩 지울 수 없음)
 // 고른 파일은 PEND["main-notice:x-files"]처럼 '화면별 작성란(main-○○)/팝업(modal) + 칸 id'로 보관 → 화면을 다시 그려도 남고, 공지·수행평가 작성칸끼리는 섞이지 않음
 const PEND={};
@@ -196,7 +195,7 @@ const RESET=[["schedule","학사일정"],["meals","급식"],["students","학생 
 const NAV=[["home","🏠 홈"],["notice","📢 공지사항"],["assess","📝 수행평가"],["assign","📥 과제 제출"],["board","💬 방명록"],["counsel","🤝 상담 신청"]];
 function side(){$("#side").innerHTML=`<h1>신현준T</h1><small>교과 통합관리</small>`+(S.user?`<nav class="navs">`+NAV.concat(T()?[["tools","🧰 도구 모음"],["admin","⚙️ 관리"]]:[["settings","🔒 설정"]]).map(([k,v])=>`<button class="nav ${S.page===k?"on":""}" data-go="${k}">${v}</button>`).join("")+`</nav><div class="who"><b>${T()?"교사":esc(st().name)}</b><br><span style="color:#a9c7ba">${T()?"관리자 모드":`${st().grade}학년 ${st().classNum}반 ${st().num}번`}</span><br><button class="btn s o" style="margin-top:8px" data-act="logout">로그아웃</button></div>`:"");if(document.documentElement.classList.contains("mob"))$("#side .nav.on")?.scrollIntoView({block:"nearest",inline:"nearest"})}
 function render(){side();const m=$("#main"),tl=S.user&&T()&&S.page==="tools";m.hidden=!!tl;$("#tools").hidden=!tl;if(tl)return showTools();if(!S.user){m.innerHTML=`<div class="card login"><h2>로그인</h2><p class="sub">학번을 입력하세요.</p><input id="login-id" placeholder="예: 10101" autocomplete="off"><button class="btn" data-act="login" style="width:100%;margin-top:12px">로그인</button>${dbState()}</div>`+viewBar();setTimeout(()=>$("#login-id")?.focus(),30);return}
-m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()+viewBar();applyFold(m);paintFP(m);if(S.page==="admin"){filterRoster();paintPw()}}
+m.innerHTML=({home,notice,assess,assign,board,counsel,admin,settings})[S.page]()+viewBar();if(DB.err)m.insertAdjacentHTML("afterbegin",dbState());applyFold(m);paintFP(m);if(S.page==="admin"){filterRoster();paintPw()}}
 
 // ───── 홈
 function monthCal(){const[y,mo]=S.ym.split("-").map(Number),first=new Date(y,mo-1,1).getDay(),n=new Date(y,mo,0).getDate();let h=["일","월","화","수","목","금","토"].map(d=>`<div class="h">${d}</div>`).join("")+"<div></div>".repeat(first);
@@ -495,18 +494,20 @@ async function neis(){const c=neisForm(),msg=$("#neis-msg");try{localStorage.set
    await batchPut("meals",mr.map(r=>({id:"n"+r.MLSV_YMD+r.MMEAL_SC_CODE,date:ymd(r.MLSV_YMD),type:r.MMEAL_SC_NM,menu:r.DDISH_NM.replace(/<br\s*\/?>/g,"\n").replace(/\s*\([\d.,\s]+\)/g,""),src:"neis"})));out.push(`급식 ${mr.length}건`)}
   msg.textContent=`완료 (${F} ~ ${Tt}): ${out.join(", ")}`}
  catch(e){msg.textContent=`실패: ${e.message||"연결 오류"} — 키·코드를 확인하거나 CSV·직접 입력을 이용하세요.`}}
-function enter(user){S.user=user;S.page="home";closeModal();render()}
+function enter(user){S.user=user;S.page="home";S.loginStu=null;closeModal();listen();render()}
 const A={
 login(){const v=$("#login-id").value.trim();if(!v)return;
  if(v==="교사"||v==="관리자")return modal(`<h2>교사 로그인</h2><label>비밀번호</label><input id="pw-in" type="password"><br><br><button class="btn" data-act="pwOk" data-who="t" style="width:100%">확인</button>`,1);
- if(!DB.ok.has("students"))return alert("학생 명단을 아직 서버에서 불러오지 못했습니다.\n\n"+(DB.err?dbWhy(DB.err):"서버에 연결하는 중입니다. 잠시 뒤 다시 시도해 주세요."));
- const s=S.students.find(x=>x.studentId===v);if(!s)return alert("등록되지 않은 학번입니다.");
+ return A.stuLogin(v)},
+async stuLogin(v){if(DB.busy)return;DB.busy=true;const b=$("[data-act=login]");if(b){b.disabled=true;b.textContent="확인 중…"}
+ let s=null;try{s=await findStudent(v)}catch(e){DB.err=e;render();return alert("학생 정보를 서버에서 확인하지 못했습니다.\n\n"+dbWhy(e))}finally{DB.busy=false;if(b){b.disabled=false;b.textContent="로그인"}}
+ DB.err=null;if(!s)return alert("등록되지 않은 학번입니다.");S.loginStu=s;
  if(!s.pw)return enter({role:"student",data:s});
  modal(`<h2>${esc(s.name)} 학생</h2><label>비밀번호</label><input id="pw-in" type="password"><br><br><button class="btn" data-act="pwOk" data-who="${s.id}" style="width:100%">확인</button>`,1)},
 async pwOk(who){const p=$("#pw-in").value;if(!p)return;
  if(who==="t"){let r;try{r=await getDoc(doc(db,"config","admin"))}catch(e){DB.err=DB.err||e;render();return alert("교사 비밀번호를 서버에서 확인하지 못했습니다.\n\n"+dbWhy(e))}const h=await sha(p);if(!r.exists())await setDoc(doc(db,"config","admin"),{h});else if(r.data().h!==h)return alert("비밀번호가 틀립니다.");return enter({role:"teacher"})}
- const s=S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
-logout(){closeTools();S.user=null;S.pwShow="";S.stq="";clearTimeout(pwTimer);render()},
+ const s=S.loginStu?.id===who?S.loginStu:S.students.find(x=>x.id===who);if(s?.pw===p)enter({role:"student",data:s});else alert("비밀번호가 틀립니다.")},
+logout(){closeTools();unlisten();S.user=null;S.pwShow="";S.stq="";clearTimeout(pwTimer);render()},
 async addNotice(){const r=$("#main"),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r);if(!x)return;await put("notices",{id:uid("n"),title:t,body:q(r,"#n-body").value,createdAt:new Date().toISOString(),...tgtVals(r),...nd,...x});fpClear("main-"+S.page);alert("등록되었습니다.");render()},
 async saveNotice(id){const r=$("#modal"),n=S.notices.find(x=>x.id===id),t=q(r,"#n-title").value.trim();if(!t)return alert("제목을 입력하세요.");const nd=ndateVals(r);if(!nd)return;const x=await readAttach(r,n.files);if(!x)return;
  await setDoc(doc(db,"notices",id),{...n,title:t,body:q(r,"#n-body").value,...tgtVals(r),...nd,...x,editedAt:new Date().toISOString()});closeModal();alert("수정되었습니다.")},
@@ -568,10 +569,19 @@ if(e.target.dataset.sf){const k=e.target.dataset.sf;S.sf[k]=e.target.value;if(k=
 const k=e.target.dataset.csv;if(!k)return;const rows=csv(await e.target.files[0].text());
 const arr=k==="schedule"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:uid("f"),date:r[0],name:r[1]})):k==="meals"?rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r[0])).map(r=>({id:"m"+r[0]+(r[1]||"중식"),date:r[0],type:r[1]||"중식",menu:(r[2]||"").split("/").join("\n")})):rows.filter(r=>/^\d{5}$/.test(r[0])).map(r=>mkStu(r[0],r[1]));
 await batchPut(k,arr);alert(arr.length+"건을 불러왔습니다.")});
-COLS.forEach(c=>onSnapshot(collection(db,c),s=>{S[c]=s.docs.map(d=>d.data());if(!s.metadata?.fromCache){DB.ok.add(c);if(DB.err&&DB.ok.size>=COLS.length)DB.err=null}
- if(c==="students"&&S.user?.role==="student"){const me=S[c].find(x=>x.id===st().id);if(me)S.user.data=me}
- if(!document.activeElement?.matches("#main input,#main textarea,#main select"))render()},err=>{console.warn("Firestore",c,err);DB.err=err;if(!S.user)render()}));
-setTimeout(()=>{if(!DB.ok.has("students")){DB.slow=true;if(!S.user)render()}},10000);
+// ───── 데이터 받기 (13차): 로그인 전에는 아무것도 받지 않아 로그인 화면이 바로 뜨고, 로그인 확인은 문서 1개만 읽음
+// 로그인 뒤 교사는 전체를, 학생은 공용 자료(공지·수행평가·과제·방명록·일정·급식)와 '자기' 학생 정보·제출물·상담만 받음
+// (예전에는 접속하자마자 모든 학생의 제출물·첨부파일까지 내려받아 로그인이 느려지고 Firebase 사용량도 많이 썼음)
+const idVals=v=>[...new Set([String(v),+v].filter(x=>x!==""&&!Number.isNaN(x)))];   // 학번이 글자/숫자 어느 쪽으로 저장돼 있어도 찾음
+async function findStudent(v){const r=await getDoc(doc(db,"students",String(v)));if(r.exists())return r.data();
+ const q2=await getDocs(query(collection(db,"students"),where("studentId","in",idVals(v))));return q2.docs[0]?.data()||null}
+let UNSUB=[];
+function listen(){unlisten();const me=S.user?.role==="student"?st().studentId:null;
+ COLS.forEach(c=>{let src=collection(db,c);if(me!=null&&["students","submissions","counsel"].includes(c))src=query(src,where("studentId","in",idVals(me)));
+  UNSUB.push(onSnapshot(src,s=>{S[c]=s.docs.map(d=>d.data());if(!s.metadata?.fromCache){DB.ok.add(c);if(DB.err&&DB.ok.size>=COLS.length)DB.err=null}
+   if(c==="students"&&S.user?.role==="student"){const m=S[c].find(x=>x.id===st().id);if(m)S.user.data=m}
+   if(!document.activeElement?.matches("#main input,#main textarea,#main select"))render()},err=>{console.warn("Firestore",c,err);DB.err=err;render()}))})}
+function unlisten(){UNSUB.forEach(f=>f());UNSUB=[];DB.ok.clear();COLS.forEach(c=>S[c]=[])}
 render();
 </script>
 <script id="toolkit-data">/* 🧰 도구 모음(수업 툴킷) 내장본: toolkit.html 전체. 툴킷을 고치면 embed_toolkit.py로 이 줄만 다시 넣음 */
